@@ -66,8 +66,7 @@ Usage
 #include "slidingInterface.H"
 
 #include "sampleMNIST.H"
-void printHelpInfo();
-int testInfer(int argc, char **argv, int &out);
+
 samplesCommon::Args args;
 MNISTSampleParams params = initializeSampleParams(args);
 
@@ -78,10 +77,13 @@ using namespace Foam;
 int main(int argc, char *argv[])
 {
     // inference test
-    std::vector<float> b;
+    // load model from case/data
+    params.dataDirs.push_back("./data/");
 
+    // output holder
+    std::vector<float> b;
+    // initial model object
     SampleMNIST sample(params);
-    Info << params.dataDirs[0] << endl;
 
     sample.build();
 
@@ -89,10 +91,12 @@ int main(int argc, char *argv[])
 
     sample.teardown();
 
-    Info << "the infered is a:" << success << ". The value from dl model: " << '\n';
-    for (std::vector<float>::iterator it = b.begin(); it != b.end(); ++it)
+    // check inference output
+    Info << "the infered is a:" << success << '\n'
+         << ". The value from dl model: " << '\n';
+    for (uint i = 0; i < b.size(); i++)
     {
-        Info << *it << '\n';
+        Info << i << " : " << b[i] << '\n';
     }
 
     argList::noParallel();

@@ -110,10 +110,7 @@ bool SampleMNIST::verifyOutput(const samplesCommon::BufferManager &buffers, cons
     std::cout << "outPutTensorName is " << outputTensorName << '\n';
     int vec_num = buffers.size(outputTensorName) / sizeof(*prob);
     std::cout << "length is: " << vec_num << '\n';
-    // std::cout << "prob [11] " << prob[11] << '\n';
-
     std::vector<float> vec_prob(prob, prob + vec_num);
-    // std::cout << vec_prob[11] << '\n';
 
     float val{0.0f};
     int idx{0};
@@ -124,7 +121,6 @@ bool SampleMNIST::verifyOutput(const samplesCommon::BufferManager &buffers, cons
             idx = i;
         std::cout << i << ": " << std::string(int(std::floor(prob[i] * 10 + 0.5f)), '*') << "\n";
     }
-    std::cout << std::endl;
 
     return (idx == groundTruthDigit && val > 0.9f);
 }
