@@ -1,17 +1,17 @@
-# TensorRT in OpenFOAM<sup>\*<sup>
+# TensorRT<sup>\*</sup> in OpenFOAM
 
-1.Compile the trtMNIST with
+1. Compile the trtMNIST with
 
 ```
 wmake libso
 ```
 
-2.Compile the code with
+2. Compile the code with
 
 ```
 wmake
 ```
 
-3. In the log file the MNIST inference are shown.
+3. The MNIST inference are shown in the log file.
 
-<sup>\*<sup>This demo works with tensorrt 5.
+<sup>\*This demo works with tensorrt 5.
