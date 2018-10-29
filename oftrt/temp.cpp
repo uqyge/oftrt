@@ -1,20 +1,16 @@
 #include "csv.h"
-
-// int main()
-// {
-//     io::CSVReader<3> in("ram.csv");
-//     in.read_header(io::ignore_extra_column, "vendor", "size", "speed");
-//     std::string vendor;
-//     int size;
-//     double speed;
-//     while (in.read_row(vendor, size, speed))
-//     {
-//         // do stuff with the data
-//     }
-// }
 #include "iostream"
 int main()
 {
-    std::cout << "hello world!" << '\n';
-    return 1;
+    io::CSVReader<2> in("iris.csv");
+    in.read_header(io::ignore_extra_column, "PetalWidth", "Name");
+    std::string Name;
+    float PetalWidth;
+    std::vector<std::string> Names;
+    while (in.read_row(PetalWidth, Name))
+    {
+        // std::cout << Name << '\n';
+        Names.emplace_back(Name);
+    }
+    std::cout << "There are " << Names.size() << " samples. The 6th is " << Names[5] << '\n';
 }
