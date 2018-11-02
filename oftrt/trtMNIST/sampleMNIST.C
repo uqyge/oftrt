@@ -62,6 +62,11 @@ bool SampleMNIST::build()
 
     assert(network->getNbInputs() == 1);
     mInputDims = network->getInput(0)->getDimensions();
+    // mOutputDims = network->getOutput(0)->getDimensions();
+    // mOutputDims = mInputDims;
+    outSize = network->getOutput(0)->getDimensions().d[0];
+    std::cout << network->getOutput(0)->getDimensions().d[0];
+
     assert(mInputDims.nbDims == 3);
 
     return true;
@@ -83,19 +88,6 @@ bool SampleMNIST::processInput(const samplesCommon::BufferManager &buffers, cons
     uint8_t fileData[inputH * inputW];
     readPGMFile(locateFile(std::to_string(inputFileIdx) + ".pgm", mParams.dataDirs), fileData, inputH, inputW);
 
-    // uint8_t fileData_1[inputH * inputW];
-    // uint8_t fileData_3[inputH * inputW];
-    // uint8_t fileData_5[inputH * inputW];
-    // readPGMFile(locateFile(std::to_string(1) + ".pgm", mParams.dataDirs), fileData_1, inputH, inputW);
-    // readPGMFile(locateFile(std::to_string(3) + ".pgm", mParams.dataDirs), fileData_3, inputH, inputW);
-    // readPGMFile(locateFile(std::to_string(5) + ".pgm", mParams.dataDirs), fileData_5, inputH, inputW);
-    // float data[3 * inputH * inputW];
-    // for (int i = 0; i < inputH * inputW; i++)
-    // {
-    //     data[i] = float(fileData_1[i]);
-    //     data[1 * inputH * inputW + i] = float(fileData_3[i]);
-    //     data[2 * inputH * inputW + i] = float(fileData_5[i]);
-    // }
     std::cout << "input buffer : " << buffers.size(mParams.inputTensorNames[0]) / sizeof(float) << '\n';
     // Print ASCII representation of digit
     std::cout << "\nInput:\n"
@@ -157,6 +149,10 @@ void SampleMNIST::constructNetwork(SampleUniquePtr<nvinfer1::IBuilder> &builder,
 
     for (auto &s : mParams.outputTensorNames)
         network->markOutput(*blobNameToTensor->find(s.c_str()));
+
+    // nvinfer1::Dims outDims;
+    // outDims = network->getOutput(0)->getDimensions();
+    // std::cout << "outdims" << outDims.d[0] << '\n';
 
     // add mean subtraction to the beginning of the network
     Dims inputDims = network->getInput(0)->getDimensions();
@@ -247,10 +243,10 @@ bool SampleMNIST::infer(std::vector<float> &out)
 
         out_vec.insert(out_vec.end(),
                        prob_out,
-                       prob_out + mParams.batchSize * 10);
+                       prob_out + mParams.batchSize * outSize);
     }
-
-    out_vec.resize(tot_n * 10);
+    // std::cout << "m out size: " << mOutputDims.d[0] << '\n';
+    out_vec.resize(tot_n * outSize);
     out = out_vec;
     return 0;
 }

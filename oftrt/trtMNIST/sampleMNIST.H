@@ -110,5 +110,8 @@ class SampleMNIST
 
     nvinfer1::Dims mInputDims; //!< The dimensions of the input to the network.
 
+    // nvinfer1::Dims mOutputDims; //!< The dimensions of the output to the network.
+    int outSize;
+
     SampleUniquePtr<nvcaffeparser1::IBinaryProtoBlob> mMeanBlob; //! the mean blob, which we need to keep around until build is done
 };
