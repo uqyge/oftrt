@@ -79,6 +79,7 @@ int main(int argc, char *argv[])
     // inference test
     // load model from case/data
     params.dataDirs.push_back("./data/");
+    params.batchSize = 4;
 
     // output holder
     std::vector<float> b;

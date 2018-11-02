@@ -83,6 +83,20 @@ bool SampleMNIST::processInput(const samplesCommon::BufferManager &buffers, cons
     uint8_t fileData[inputH * inputW];
     readPGMFile(locateFile(std::to_string(inputFileIdx) + ".pgm", mParams.dataDirs), fileData, inputH, inputW);
 
+    // uint8_t fileData_1[inputH * inputW];
+    // uint8_t fileData_3[inputH * inputW];
+    // uint8_t fileData_5[inputH * inputW];
+    // readPGMFile(locateFile(std::to_string(1) + ".pgm", mParams.dataDirs), fileData_1, inputH, inputW);
+    // readPGMFile(locateFile(std::to_string(3) + ".pgm", mParams.dataDirs), fileData_3, inputH, inputW);
+    // readPGMFile(locateFile(std::to_string(5) + ".pgm", mParams.dataDirs), fileData_5, inputH, inputW);
+    // float data[3 * inputH * inputW];
+    // for (int i = 0; i < inputH * inputW; i++)
+    // {
+    //     data[i] = float(fileData_1[i]);
+    //     data[1 * inputH * inputW + i] = float(fileData_3[i]);
+    //     data[2 * inputH * inputW + i] = float(fileData_5[i]);
+    // }
+    std::cout << "input buffer : " << buffers.size(mParams.inputTensorNames[0]) / sizeof(float) << '\n';
     // Print ASCII representation of digit
     std::cout << "\nInput:\n"
               << std::endl;
@@ -171,44 +185,74 @@ bool SampleMNIST::infer(std::vector<float> &out)
 
     // Pick a random digit to try to infer
     srand(time(NULL));
-    const int digit = rand() % 10;
+    // const int digit = rand() % 10;
 
-    // Read the input data into the managed buffers
-    // There should be just 1 input tensor
-    assert(mParams.inputTensorNames.size() == 1);
-    std::cout << "input name: " << mParams.inputTensorNames[0] << '\n';
-    if (!processInput(buffers, mParams.inputTensorNames[0], digit))
-        return false;
+    //prepare input
+    const int inputH = mInputDims.d[1];
+    const int inputW = mInputDims.d[2];
+    uint8_t fileData_1[inputH * inputW];
+    uint8_t fileData_3[inputH * inputW];
+    uint8_t fileData_5[inputH * inputW];
+    readPGMFile(locateFile(std::to_string(1) + ".pgm", mParams.dataDirs), fileData_1, inputH, inputW);
+    readPGMFile(locateFile(std::to_string(3) + ".pgm", mParams.dataDirs), fileData_3, inputH, inputW);
+    readPGMFile(locateFile(std::to_string(5) + ".pgm", mParams.dataDirs), fileData_5, inputH, inputW);
+    const int tot_n = 3;
+    float data[tot_n * inputH * inputW];
+    for (int i = 0; i < inputH * inputW; i++)
+    {
+        data[i] = float(fileData_1[i]);
+        data[1 * inputH * inputW + i] = float(fileData_3[i]);
+        data[2 * inputH * inputW + i] = float(fileData_5[i]);
+    }
 
-    // Create CUDA stream for the execution of this inference.
-    cudaStream_t stream;
-    CHECK(cudaStreamCreate(&stream));
+    // output holder
+    std::vector<float> out_vec;
+    for (int n = 0; n < tot_n; n += mParams.batchSize)
+    {
 
-    // Asynchronously copy data from host input buffers to device input buffers
-    buffers.copyInputToDeviceAsync(stream);
+        // Read the input data into the managed buffers
+        // There should be just 1 input tensor
+        assert(mParams.inputTensorNames.size() == 1);
+        std::cout << "input name: " << mParams.inputTensorNames[0] << '\n';
+        float *hostInputBuffer = static_cast<float *>(buffers.getHostBuffer(mParams.inputTensorNames[0]));
+        for (int i = 0; i < mParams.batchSize * inputH * inputW; i++)
+            hostInputBuffer[i] = float(data[i + n * inputH * inputW]);
 
-    // Asynchronously enqueue the inference work
-    if (!context->enqueue(mParams.batchSize, buffers.getDeviceBindings().data(), stream, nullptr))
-        return false;
+        // Create CUDA stream for the execution of this inference.
+        cudaStream_t stream;
+        CHECK(cudaStreamCreate(&stream));
 
-    // Asynchronously copy data from device output buffers to host output buffers
-    buffers.copyOutputToHostAsync(stream);
+        // Asynchronously copy data from host input buffers to device input buffers
+        buffers.copyInputToDeviceAsync(stream);
 
-    // Wait for the work in the stream to complete
-    cudaStreamSynchronize(stream);
+        // Asynchronously enqueue the inference work
+        if (!context->enqueue(mParams.batchSize, buffers.getDeviceBindings().data(), stream, nullptr))
+            return false;
 
-    // Release stream
-    cudaStreamDestroy(stream);
+        // Asynchronously copy data from device output buffers to host output buffers
+        buffers.copyOutputToHostAsync(stream);
 
-    // Check and print the output of the inference
-    // There should be just one output tensor
-    assert(mParams.outputTensorNames.size() == 1);
-    bool outputCorrect = verifyOutput(buffers, mParams.outputTensorNames[0], digit);
-    const float *prob_1 = static_cast<const float *>(buffers.getHostBuffer(mParams.outputTensorNames[0]));
-    int vec_num = 10;
-    std::vector<float> vec_prob(prob_1, prob_1 + vec_num);
-    out = vec_prob;
-    return outputCorrect;
+        // Wait for the work in the stream to complete
+        cudaStreamSynchronize(stream);
+
+        // Release stream
+        cudaStreamDestroy(stream);
+
+        // Check and print the output of the inference
+        // There should be just one output tensor
+        assert(mParams.outputTensorNames.size() == 1);
+
+        // prepare output
+        const float *prob_out = static_cast<const float *>(buffers.getHostBuffer(mParams.outputTensorNames[0]));
+
+        out_vec.insert(out_vec.end(),
+                       prob_out,
+                       prob_out + mParams.batchSize * 10);
+    }
+
+    out_vec.resize(tot_n * 10);
+    out = out_vec;
+    return 0;
 }
 
 //!
