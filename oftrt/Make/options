@@ -4,6 +4,7 @@ EXE_INC = \
     -I$(LIB_SRC)/fileFormats/lnInclude \
     -I$(LIB_SRC)/dynamicMesh/lnInclude \
     -I/usr/local/cuda-9.0/include \
+    -I$(HOME)/repos/oftrt/oftrt/uffMNIST \
     -I$(HOME)/repos/oftrt/oftrt/trtMNIST \
     -I$(HOME)/repos/oftrt/oftrt/trtMNIST/common
 
@@ -15,4 +16,5 @@ EXE_LIBS = \
     -lfileFormats \
     -L$(FOAM_USER_LIBBIN) \
     -ltrtMNIST \
+    -luffMNIST \
     -ldynamicMesh

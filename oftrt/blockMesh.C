@@ -66,16 +66,37 @@ Usage
 #include "slidingInterface.H"
 
 #include "sampleMNIST.H"
-
+#include "sampleUffMNIST.H"
 samplesCommon::Args args;
 MNISTSampleParams params = initializeSampleParams(args);
-
+// std::string locateFile(const std::string &input);
 using namespace Foam;
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 int main(int argc, char *argv[])
 {
+    // uff loader
+    auto parser = createUffParser();
+
+    /* Register tensorflow input */
+    parser->registerInput("in", Dims3(1, 28, 28), UffInputOrder::kNCHW);
+    parser->registerOutput("out");
+
+    int maxBatchSize = 1;
+
+    auto modelFile = locateFile("lenet5.uff");
+    std::cout << "uff:" << modelFile << '\n';
+
+    nvinfer1::ICudaEngine *engine = loadModelAndCreateEngine(modelFile.c_str(), maxBatchSize, parser);
+    if (!engine)
+        std::cout << 'engine fail' << '\n';
+    parser->destroy();
+    execute(*engine);
+    engine->destroy();
+    std::cout << "uff inference finished.\n";
+
+    // CAFFE model load
     // inference test
     // load model from case/data
     params.dataDirs.push_back("./data/");
