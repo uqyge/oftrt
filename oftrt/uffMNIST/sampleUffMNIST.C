@@ -132,25 +132,26 @@ void *createMnistCudaBuffer(int64_t eltCount, DataType dtype, int run)
     return deviceMem;
 }
 
-void *createRealCudaBuffer(int64_t eltCount, DataType dtype, int run)
+void *createRealCudaBuffer(float *input_p_he, int64_t eltCount, DataType dtype, int run)
 {
     /* in that specific case, eltCount == INPUT_H * INPUT_W */
     std::cout << eltCount << '\n';
-    assert(eltCount == INPUT_H * INPUT_W);
+    // std::cout << input_p_he[0] << '\n'
+    //           << input_p_he[1] << '\n';
+    //   << input_p_he[2] << '\n'
+    //   << input_p_he[3] << '\n';
+    // assert(eltCount == INPUT_H * INPUT_W);
     assert(elementSize(dtype) == sizeof(float));
 
     size_t memSize = eltCount * elementSize(dtype);
     float *inputs = new float[eltCount];
 
-    /* read PGM file */
-
     for (int i = 0; i < eltCount; i++)
     {
-        inputs[i] = 0.0;
+        inputs[i] = input_p_he[i];
         std::cout << inputs[i] << '\n';
     }
-    // inputs[0] = 0.0;
-    // inputs[1] = 1.714e-2;
+    // inputs = input_p_he;
 
     void *deviceMem = safeCudaMalloc(memSize);
     CHECK(cudaMemcpy(deviceMem, inputs, memSize, cudaMemcpyHostToDevice));
@@ -218,10 +219,10 @@ ICudaEngine *loadModelAndCreateEngine(const char *uffFile, int maxBatchSize,
     return engine;
 }
 
-void execute(ICudaEngine &engine)
+void execute(ICudaEngine &engine, std::vector<float> &input_p_he)
 {
     IExecutionContext *context = engine.createExecutionContext();
-    int batchSize = 1;
+    int batchSize = 2;
 
     int nbBindings = engine.getNbBindings();
     assert(nbBindings == 2);
@@ -245,7 +246,11 @@ void execute(ICudaEngine &engine)
     auto bufferSizesInput = buffersSizes[bindingIdxInput];
 
     int iterations = 1;
-    int numberRun = 10;
+    int numberRun = 2;
+    // std::vector<float> input_p_he{0.0, 0.0, 0.0, 4.414e-4};
+    numberRun = input_p_he.size() / bufferSizesInput.first * 1000;
+    // float input_p_he[] = {0.0, 0.0, 0.0, 4.414e-4};
+
     for (int i = 0; i < iterations; i++)
     {
         float total = 0, ms;
@@ -253,8 +258,13 @@ void execute(ICudaEngine &engine)
         {
             // buffers[bindingIdxInput] = createMnistCudaBuffer(bufferSizesInput.first,
             //                                                  bufferSizesInput.second, run);
-
-            buffers[bindingIdxInput] = createRealCudaBuffer(bufferSizesInput.first,
+            float input_batch[batchSize * INPUT_H * INPUT_W];
+            for (int i = 0; i < batchSize * INPUT_H * INPUT_W; i++)
+            {
+                input_batch[i] = input_p_he[i + batchSize * INPUT_H * INPUT_W * 0];
+            }
+            buffers[bindingIdxInput] = createRealCudaBuffer(input_batch,
+                                                            bufferSizesInput.first,
                                                             bufferSizesInput.second, run);
 
             auto t_start = std::chrono::high_resolution_clock::now();

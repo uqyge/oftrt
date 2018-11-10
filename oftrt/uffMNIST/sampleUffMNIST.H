@@ -27,4 +27,4 @@ ICudaEngine *loadModelAndCreateEngine(const char *uffFile,
                                       int maxBatchSize,
                                       IUffParser *parser);
 
-void execute(ICudaEngine &engine);
+void execute(ICudaEngine &engine, std::vector<float> &input_p_he);

@@ -79,12 +79,8 @@ int main(int argc, char *argv[])
 {
     // uff loader
     auto parser = createUffParser();
-    int maxBatchSize = 1;
-
-    /* Register tensorflow input */
-    // parser->registerInput("in", Dims3(1, 28, 28), UffInputOrder::kNCHW);
-    // parser->registerOutput("out");
-    // auto modelFile = locateFile("lenet5.uff");
+    int maxBatchSize = 20;
+    std::vector<float> input_p_he{0.0, 0.0, 0.0, 4.414e-4};
 
     parser->registerInput("input_1", Dims3(1, 2, 1), UffInputOrder::kNCHW);
     // parser->registerInput("input_1", Dims2(2, 1), UffInputOrder::kNCHW);
@@ -97,7 +93,7 @@ int main(int argc, char *argv[])
     if (!engine)
         std::cout << 'engine fail\n';
     parser->destroy();
-    execute(*engine);
+    execute(*engine, input_p_he);
     engine->destroy();
     std::cout << "uff inference finished.\n";
 
