@@ -57,8 +57,8 @@ inline unsigned int elementSize(DataType t)
     return 0;
 }
 
-static const int INPUT_H = 28;
-static const int INPUT_W = 28;
+static const int INPUT_H = 2;
+static const int INPUT_W = 1;
 static const int OUTPUT_SIZE = 10;
 
 std::string locateFile(const std::string &input)
@@ -124,6 +124,33 @@ void *createMnistCudaBuffer(int64_t eltCount, DataType dtype, int run)
     /* initialize the inputs buffer */
     for (int i = 0; i < eltCount; i++)
         inputs[i] = 1.0 - float(fileData[i]) / 255.0;
+
+    void *deviceMem = safeCudaMalloc(memSize);
+    CHECK(cudaMemcpy(deviceMem, inputs, memSize, cudaMemcpyHostToDevice));
+
+    delete[] inputs;
+    return deviceMem;
+}
+
+void *createRealCudaBuffer(int64_t eltCount, DataType dtype, int run)
+{
+    /* in that specific case, eltCount == INPUT_H * INPUT_W */
+    std::cout << eltCount << '\n';
+    assert(eltCount == INPUT_H * INPUT_W);
+    assert(elementSize(dtype) == sizeof(float));
+
+    size_t memSize = eltCount * elementSize(dtype);
+    float *inputs = new float[eltCount];
+
+    /* read PGM file */
+
+    for (int i = 0; i < eltCount; i++)
+    {
+        inputs[i] = 0.0;
+        std::cout << inputs[i] << '\n';
+    }
+    // inputs[0] = 0.0;
+    // inputs[1] = 1.714e-2;
 
     void *deviceMem = safeCudaMalloc(memSize);
     CHECK(cudaMemcpy(deviceMem, inputs, memSize, cudaMemcpyHostToDevice));
@@ -224,8 +251,11 @@ void execute(ICudaEngine &engine)
         float total = 0, ms;
         for (int run = 0; run < numberRun; run++)
         {
-            buffers[bindingIdxInput] = createMnistCudaBuffer(bufferSizesInput.first,
-                                                             bufferSizesInput.second, run);
+            // buffers[bindingIdxInput] = createMnistCudaBuffer(bufferSizesInput.first,
+            //                                                  bufferSizesInput.second, run);
+
+            buffers[bindingIdxInput] = createRealCudaBuffer(bufferSizesInput.first,
+                                                            bufferSizesInput.second, run);
 
             auto t_start = std::chrono::high_resolution_clock::now();
             context->execute(batchSize, &buffers[0]);

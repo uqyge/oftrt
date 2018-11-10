@@ -67,6 +67,7 @@ Usage
 
 #include "sampleMNIST.H"
 #include "sampleUffMNIST.H"
+
 samplesCommon::Args args;
 MNISTSampleParams params = initializeSampleParams(args);
 // std::string locateFile(const std::string &input);
@@ -78,19 +79,23 @@ int main(int argc, char *argv[])
 {
     // uff loader
     auto parser = createUffParser();
-
-    /* Register tensorflow input */
-    parser->registerInput("in", Dims3(1, 28, 28), UffInputOrder::kNCHW);
-    parser->registerOutput("out");
-
     int maxBatchSize = 1;
 
-    auto modelFile = locateFile("lenet5.uff");
+    /* Register tensorflow input */
+    // parser->registerInput("in", Dims3(1, 28, 28), UffInputOrder::kNCHW);
+    // parser->registerOutput("out");
+    // auto modelFile = locateFile("lenet5.uff");
+
+    parser->registerInput("input_1", Dims3(1, 2, 1), UffInputOrder::kNCHW);
+    // parser->registerInput("input_1", Dims2(2, 1), UffInputOrder::kNCHW);
+    parser->registerOutput("dense_2/BiasAdd");
+    auto modelFile = locateFile("mayer.uff");
+
     std::cout << "uff:" << modelFile << '\n';
 
     nvinfer1::ICudaEngine *engine = loadModelAndCreateEngine(modelFile.c_str(), maxBatchSize, parser);
     if (!engine)
-        std::cout << 'engine fail' << '\n';
+        std::cout << 'engine fail\n';
     parser->destroy();
     execute(*engine);
     engine->destroy();
