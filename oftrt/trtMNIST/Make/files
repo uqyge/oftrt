@@ -1,3 +1,0 @@
-sampleMNIST.C
-
-LIB = $(FOAM_USER_LIBBIN)/libtrtMNIST

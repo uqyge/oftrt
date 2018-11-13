@@ -402,11 +402,12 @@ $(WM_PROJECT_DIR)/src/dynamicMesh/lnInclude/slidingInterface.H \
 $(WM_PROJECT_DIR)/src/OpenFOAM/lnInclude/polyPatchID.H \
 $(WM_PROJECT_DIR)/src/OpenFOAM/lnInclude/DynamicID.H \
 $(WM_PROJECT_DIR)/src/OpenFOAM/lnInclude/ZoneIDs.H \
-/home/eg/repos/oftrt/oftrt/trtMNIST/sampleMNIST.H \
-/home/eg/repos/oftrt/oftrt/trtMNIST/common/common.h \
-/home/eg/repos/oftrt/oftrt/trtMNIST/common/argsParser.h \
-/home/eg/repos/oftrt/oftrt/trtMNIST/common/buffers.h \
-/home/eg/repos/oftrt/oftrt/trtMNIST/common/half.h \
+/home/eg/repos/oftrt/oftrt/caffeModel/sampleMNIST.H \
+/home/eg/repos/oftrt/oftrt/caffeModel/common/common.h \
+/home/eg/repos/oftrt/oftrt/caffeModel/common/argsParser.h \
+/home/eg/repos/oftrt/oftrt/caffeModel/common/buffers.h \
+/home/eg/repos/oftrt/oftrt/caffeModel/common/half.h \
+/home/eg/repos/oftrt/oftrt/uffModel/sampleUffMNIST.H \
 $(WM_PROJECT_DIR)/src/OpenFOAM/lnInclude/addRegionOption.H \
 $(WM_PROJECT_DIR)/src/OpenFOAM/lnInclude/setRootCase.H \
 $(WM_PROJECT_DIR)/src/OpenFOAM/lnInclude/listOptions.H \

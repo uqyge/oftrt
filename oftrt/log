@@ -1,0 +1,84 @@
+uff:.././data/mayer.uff
+rounds:1
+4
+0
+0
+0
+0.0004414
+8 eltCount
+--- OUTPUT ---
+0 => 0.986911	 : ***
+1 => 0.000535971	 : 
+2 => 0.913048	 : 
+3 => 0.0152237	 : 
+4 => 0.986492	 : 
+5 => 0.0007244	 : 
+6 => 0.910079	 : 
+7 => 0.0151443	 : 
+
+Average over 1 runs is 0.129922 ms.
+output_real 0:0.986911
+output_real 1:0.000535971
+output_real 2:0.913048
+output_real 3:0.0152237
+output_real 4:0.986492
+output_real 5:0.0007244
+output_real 6:0.910079
+output_real 7:0.0151443
+uff inference finished.
+10input name: data
+the infered is a:0
+. The value from dl model: 
+0 : 3.30176e-08
+1 : 0.99997
+2 : 1.33051e-07
+3 : 2.527e-08
+4 : 1.85463e-05
+5 : 2.48109e-06
+6 : 1.39621e-07
+7 : 3.30934e-06
+8 : 1.02307e-06
+9 : 3.97275e-06
+10 : 5.6814e-12
+11 : 4.70829e-09
+12 : 1.00673e-08
+13 : 0.999123
+14 : 6.80757e-08
+15 : 0.000876815
+16 : 1.70673e-09
+17 : 4.45654e-10
+18 : 2.2744e-08
+19 : 1.10541e-09
+20 : 1.04051e-13
+21 : 1.12018e-14
+22 : 2.26458e-15
+23 : 6.16103e-09
+24 : 1.77142e-15
+25 : 1
+26 : 1.80411e-11
+27 : 1.54436e-15
+28 : 3.13239e-11
+29 : 1.00996e-09
+/*---------------------------------------------------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  5.x                                   |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+Build  : 5.x-197d9d3bf20a
+Exec   : oftrt
+Date   : Nov 13 2018
+Time   : 01:34:16
+Host   : "eg-lrt10"
+PID    : 8852
+I/O    : uncollated
+Case   : /home/eg/repos/oftrt/oftrt
+nProcs : 1
+sigFpe : Enabling floating point exception trapping (FOAM_SIGFPE).
+fileModificationChecking : Monitoring run-time modified files using timeStampMaster (fileModificationSkew 10)
+allowSystemOperations : Allowing user-supplied system call operations
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+Create time
+

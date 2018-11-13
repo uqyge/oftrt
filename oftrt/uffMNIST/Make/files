@@ -1,3 +1,0 @@
-sampleUffMNIST.C
-
-LIB = $(FOAM_USER_LIBBIN)/libuffMNIST
