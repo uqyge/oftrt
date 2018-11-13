@@ -27,4 +27,9 @@ ICudaEngine *loadModelAndCreateEngine(const char *uffFile,
                                       int maxBatchSize,
                                       IUffParser *parser);
 
-void execute(ICudaEngine &engine, std::vector<float> &input_p_he);
+void execute(ICudaEngine &engine,
+             int batchSize,
+             std::vector<float> &input_p_he,
+             std::vector<float> &output_real);
+
+void printOutput(int64_t eltCount, DataType dtype, void *buffer, float *output_arr);

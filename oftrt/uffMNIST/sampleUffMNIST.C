@@ -160,7 +160,7 @@ void *createRealCudaBuffer(float *input_p_he, int64_t eltCount, DataType dtype, 
     return deviceMem;
 }
 
-void printOutput(int64_t eltCount, DataType dtype, void *buffer)
+void printOutput(int64_t eltCount, DataType dtype, void *buffer, float out_arr[])
 {
     std::cout << eltCount << " eltCount" << std::endl;
     assert(elementSize(dtype) == sizeof(float));
@@ -169,6 +169,7 @@ void printOutput(int64_t eltCount, DataType dtype, void *buffer)
     size_t memSize = eltCount * elementSize(dtype);
     float *outputs = new float[eltCount];
     CHECK(cudaMemcpy(outputs, buffer, memSize, cudaMemcpyDeviceToHost));
+    // CHECK(cudaMemcpy(out_arr, buffer, memSize, cudaMemcpyDeviceToHost));
 
     int maxIdx = 0;
     for (int i = 0; i < eltCount; ++i)
@@ -177,6 +178,7 @@ void printOutput(int64_t eltCount, DataType dtype, void *buffer)
 
     for (int64_t eltIdx = 0; eltIdx < eltCount; ++eltIdx)
     {
+        out_arr[eltIdx] = outputs[eltIdx];
         std::cout << eltIdx << " => " << outputs[eltIdx] << "\t : ";
         if (eltIdx == maxIdx)
             std::cout << "***";
@@ -219,10 +221,10 @@ ICudaEngine *loadModelAndCreateEngine(const char *uffFile, int maxBatchSize,
     return engine;
 }
 
-void execute(ICudaEngine &engine, std::vector<float> &input_p_he)
+void execute(ICudaEngine &engine, int batchSize, std::vector<float> &input_p_he, std::vector<float> &output_real)
 {
     IExecutionContext *context = engine.createExecutionContext();
-    int batchSize = 2;
+    // int batchSize = 1;
 
     int nbBindings = engine.getNbBindings();
     assert(nbBindings == 2);
@@ -247,10 +249,9 @@ void execute(ICudaEngine &engine, std::vector<float> &input_p_he)
 
     int iterations = 1;
     int numberRun = 2;
-    // std::vector<float> input_p_he{0.0, 0.0, 0.0, 4.414e-4};
-    numberRun = input_p_he.size() / bufferSizesInput.first * 1000;
-    // float input_p_he[] = {0.0, 0.0, 0.0, 4.414e-4};
-
+    numberRun = input_p_he.size() / bufferSizesInput.first;
+    std::cout << "rounds:" << numberRun << '\n';
+    float input_batch[batchSize * INPUT_H * INPUT_W];
     for (int i = 0; i < iterations; i++)
     {
         float total = 0, ms;
@@ -258,10 +259,9 @@ void execute(ICudaEngine &engine, std::vector<float> &input_p_he)
         {
             // buffers[bindingIdxInput] = createMnistCudaBuffer(bufferSizesInput.first,
             //                                                  bufferSizesInput.second, run);
-            float input_batch[batchSize * INPUT_H * INPUT_W];
             for (int i = 0; i < batchSize * INPUT_H * INPUT_W; i++)
             {
-                input_batch[i] = input_p_he[i + batchSize * INPUT_H * INPUT_W * 0];
+                input_batch[i] = input_p_he[i + batchSize * INPUT_H * INPUT_W * run];
             }
             buffers[bindingIdxInput] = createRealCudaBuffer(input_batch,
                                                             bufferSizesInput.first,
@@ -279,8 +279,13 @@ void execute(ICudaEngine &engine, std::vector<float> &input_p_he)
                     continue;
 
                 auto bufferSizesOutput = buffersSizes[bindingIdx];
+                float out_arr[bufferSizesOutput.first];
                 printOutput(bufferSizesOutput.first, bufferSizesOutput.second,
-                            buffers[bindingIdx]);
+                            buffers[bindingIdx], out_arr);
+                output_real.insert(
+                    output_real.end(),
+                    out_arr,
+                    out_arr + bufferSizesOutput.first);
             }
             CHECK(cudaFree(buffers[bindingIdxInput]));
         }
@@ -294,30 +299,3 @@ void execute(ICudaEngine &engine, std::vector<float> &input_p_he)
             CHECK(cudaFree(buffers[bindingIdx]));
     context->destroy();
 }
-
-// int main(int argc, char **argv)
-// {
-//     gDLA = samplesCommon::parseDLA(argc, argv);
-//     auto fileName = locateFile("lenet5.uff");
-//     std::cout << fileName << std::endl;
-
-//     int maxBatchSize = 1;
-//     auto parser = createUffParser();
-
-//     /* Register tensorflow input */
-//     parser->registerInput("in", Dims3(1, 28, 28), UffInputOrder::kNCHW);
-//     parser->registerOutput("out");
-
-//     ICudaEngine *engine = loadModelAndCreateEngine(fileName.c_str(), maxBatchSize, parser);
-
-//     if (!engine)
-//         RETURN_AND_LOG(EXIT_FAILURE, ERROR, "Model load failed");
-
-//     /* we need to keep the memory created by the parser */
-//     parser->destroy();
-
-//     execute(*engine);
-//     engine->destroy();
-//     shutdownProtobufLibrary();
-//     return EXIT_SUCCESS;
-// }

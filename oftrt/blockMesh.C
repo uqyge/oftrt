@@ -78,22 +78,29 @@ using namespace Foam;
 int main(int argc, char *argv[])
 {
     // uff loader
-    auto parser = createUffParser();
-    int maxBatchSize = 20;
+    int maxBatchSize = 10;
+    int batchSize = 2;
     std::vector<float> input_p_he{0.0, 0.0, 0.0, 4.414e-4};
+    std::vector<float> output_real;
 
+    auto parser = createUffParser();
     parser->registerInput("input_1", Dims3(1, 2, 1), UffInputOrder::kNCHW);
     // parser->registerInput("input_1", Dims2(2, 1), UffInputOrder::kNCHW);
     parser->registerOutput("dense_2/BiasAdd");
-    auto modelFile = locateFile("mayer.uff");
 
+    auto modelFile = locateFile("mayer.uff");
     std::cout << "uff:" << modelFile << '\n';
 
     nvinfer1::ICudaEngine *engine = loadModelAndCreateEngine(modelFile.c_str(), maxBatchSize, parser);
     if (!engine)
         std::cout << 'engine fail\n';
     parser->destroy();
-    execute(*engine, input_p_he);
+    execute(*engine, batchSize, input_p_he, output_real);
+    for (int i = 0; i < output_real.size(); i++)
+    {
+        std::cout << "output_real " << i << ":" << output_real[i] << '\n';
+    }
+
     engine->destroy();
     std::cout << "uff inference finished.\n";
 
