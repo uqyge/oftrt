@@ -106,9 +106,9 @@ int main(int argc, char *argv[])
         forAll(cells, celli)
         {
             out_1[celli] = output_real[celli * 4];
-            out_2[celli] = output_real[celli * 4 + 1];
-            out_3[celli] = output_real[celli * 4 + 2];
-            out_4[celli] = output_real[celli * 4 + 3];
+            // out_2[celli] = output_real[celli * 4 + 1];
+            // out_3[celli] = output_real[celli * 4 + 2];
+            // out_4[celli] = output_real[celli * 4 + 3];
         }
 
         // for (int i = 0; i < output_real.size(); i++)

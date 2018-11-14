@@ -158,7 +158,14 @@ void printOutput(int64_t eltCount, DataType dtype, void *buffer, float out_arr[]
     for (int i = 0; i < eltCount; ++i)
         if (outputs[i] > outputs[maxIdx])
             maxIdx = i;
-
+    for (int64_t eltIdx = 0; eltIdx < eltCount; ++eltIdx)
+    {
+        out_arr[eltIdx] = outputs[eltIdx];
+        std::cout << eltIdx << " => " << outputs[eltIdx] << "\t : ";
+        if (eltIdx == maxIdx)
+            std::cout << "***";
+        std::cout << "\n";
+    }
     std::cout << std::endl;
     delete[] outputs;
 }
