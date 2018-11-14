@@ -59,31 +59,27 @@ int main(int argc, char *argv[])
     // bool success = sample.infer(b);
     while (runTime.loop())
     {
-
         Info << "Time = " << runTime.timeName() << nl << endl;
-        // bool success = sample.infer(b);
+
+        std::vector<float> output_real;
         float inputs[in_1.size() * 2];
-        // std::vector<float> inputs[in_1.size() * 2];
-        const cellList &cells = mesh.cells();
         int i = 0;
+        const cellList &cells = mesh.cells();
         forAll(cells, celli)
         {
             inputs[i++] = in_1[celli];
             inputs[i++] = in_2[celli];
-            // Info << in_1[celli] << endl;
         }
-        // Info << input.size() << endl;
+        std::vector<float> input_p_he(inputs, inputs + in_1.size() * 2);
+
         Info << "inputs:" << inputs[0] << '\n';
         Info << "inputs:" << inputs[1] << '\n';
-        std::vector<float> input_p_he(inputs, inputs + in_1.size() * 2);
         Info << "input_p_he:" << input_p_he[0] << '\n';
         Info << "input_p_he:" << input_p_he[1] << '\n';
 
         // // uff loader
         int maxBatchSize = 10;
         int batchSize = 2;
-
-        std::vector<float> output_real;
 
         auto parser = createUffParser();
         parser->registerInput("input_1", Dims3(1, 2, 1), UffInputOrder::kNCHW);
@@ -92,7 +88,6 @@ int main(int argc, char *argv[])
 
         auto modelFile = locateFile("mayer.uff");
         std::cout << "uff:" << modelFile << '\n';
-        std::cout << parser << '\n';
 
         FPExceptionsGuard fpguard;
         nvinfer1::ICudaEngine *engine = loadModelAndCreateEngine(modelFile.c_str(), maxBatchSize, parser);
@@ -106,9 +101,9 @@ int main(int argc, char *argv[])
         forAll(cells, celli)
         {
             out_1[celli] = output_real[celli * 4];
-            // out_2[celli] = output_real[celli * 4 + 1];
-            // out_3[celli] = output_real[celli * 4 + 2];
-            // out_4[celli] = output_real[celli * 4 + 3];
+            out_2[celli] = output_real[celli * 4 + 1];
+            out_3[celli] = output_real[celli * 4 + 2];
+            out_4[celli] = output_real[celli * 4 + 3];
         }
 
         // for (int i = 0; i < output_real.size(); i++)

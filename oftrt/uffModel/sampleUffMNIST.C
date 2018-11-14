@@ -51,12 +51,6 @@ std::string locateFile(const std::string &input)
     return locateFile(input, dirs);
 }
 
-// simple PGM (portable greyscale map) reader
-void readPGMFile(const std::string &filename, uint8_t buffer[INPUT_H * INPUT_W])
-{
-    readPGMFile(locateFile(filename), buffer, INPUT_H, INPUT_W);
-}
-
 void *safeCudaMalloc(size_t memSize)
 {
     void *deviceMem;
@@ -83,37 +77,6 @@ calculateBindingBufferSizes(const ICudaEngine &engine, int nbBindings, int batch
     }
 
     return sizes;
-}
-
-void *createMnistCudaBuffer(int64_t eltCount, DataType dtype, int run)
-{
-    /* in that specific case, eltCount == INPUT_H * INPUT_W */
-    assert(eltCount == INPUT_H * INPUT_W);
-    assert(elementSize(dtype) == sizeof(float));
-
-    size_t memSize = eltCount * elementSize(dtype);
-    float *inputs = new float[eltCount];
-
-    /* read PGM file */
-    uint8_t fileData[INPUT_H * INPUT_W];
-    readPGMFile(std::to_string(run) + ".pgm", fileData);
-
-    /* display the number in an ascii representation */
-    std::cout << "\n\n\n---------------------------"
-              << "\n\n\n"
-              << std::endl;
-    for (int i = 0; i < eltCount; i++)
-        std::cout << (" .:-=+*#%@"[fileData[i] / 26]) << (((i + 1) % INPUT_W) ? "" : "\n");
-
-    /* initialize the inputs buffer */
-    for (int i = 0; i < eltCount; i++)
-        inputs[i] = 1.0 - float(fileData[i]) / 255.0;
-
-    void *deviceMem = safeCudaMalloc(memSize);
-    CHECK(cudaMemcpy(deviceMem, inputs, memSize, cudaMemcpyHostToDevice));
-
-    delete[] inputs;
-    return deviceMem;
 }
 
 void *createRealCudaBuffer(float *input_p_he, int64_t eltCount, DataType dtype, int run)
@@ -161,10 +124,10 @@ void printOutput(int64_t eltCount, DataType dtype, void *buffer, float out_arr[]
     for (int64_t eltIdx = 0; eltIdx < eltCount; ++eltIdx)
     {
         out_arr[eltIdx] = outputs[eltIdx];
-        std::cout << eltIdx << " => " << outputs[eltIdx] << "\t : ";
-        if (eltIdx == maxIdx)
-            std::cout << "***";
-        std::cout << "\n";
+        // std::cout << eltIdx << " => " << outputs[eltIdx] << "\t : ";
+        // if (eltIdx == maxIdx)
+        //     std::cout << "***";
+        // std::cout << "\n";
     }
     std::cout << std::endl;
     delete[] outputs;
