@@ -50,7 +50,7 @@
 
 # 8 "<command-line>" 2
 # 1 "Make/options"
-EXE_INC = -I$(LIB_SRC)/mesh/blockMesh/lnInclude -I$(LIB_SRC)/meshTools/lnInclude -I$(LIB_SRC)/fileFormats/lnInclude -I$(LIB_SRC)/dynamicMesh/lnInclude -I/usr/local/cuda-9.0/include -I$(HOME)/repos/oftrt/oftrt/uffModel -I$(HOME)/repos/oftrt/oftrt/caffeModel -I$(HOME)/repos/oftrt/oftrt/caffeModel/common
-# 10 "Make/options"
+EXE_INC = -I$(LIB_SRC)/mesh/blockMesh/lnInclude -I$(LIB_SRC)/meshTools/lnInclude -I$(LIB_SRC)/fileFormats/lnInclude -I$(LIB_SRC)/dynamicMesh/lnInclude -I/usr/local/cuda-10.0/include -I./nv -I./uffModel -I./caffeModel -I./caffeModel/common
+# 11 "Make/options"
 
 EXE_LIBS = -lnvinfer -lnvcaffe_parser -lblockMesh -lmeshTools -lfileFormats -L$(FOAM_USER_LIBBIN) -lcaffeModel -luffModel -ldynamicMesh

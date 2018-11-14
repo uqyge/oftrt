@@ -1,5 +1,6 @@
 $(OBJECTS_DIR)/sampleUffMNIST.C.dep: \
 sampleUffMNIST.C \
 sampleUffMNIST.H \
+../caffeModel/common/common.h \
 
 

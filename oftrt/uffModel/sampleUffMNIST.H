@@ -8,7 +8,7 @@
 #include <sys/stat.h>
 #include <unordered_map>
 #include <cassert>
-#include <vector>
+// #include <vector>
 #include "NvInfer.h"
 #include "NvUffParser.h"
 

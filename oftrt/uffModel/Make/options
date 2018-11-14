@@ -1,5 +1,5 @@
 EXE_INC = \
-    -I$(HOME)/repos/oftrt/oftrt/caffeModel/common \
-    -I/usr/local/cuda-9.0/include 
+    -I../caffeModel/common \
+    -I/usr/local/cuda-10.0/include 
 
 EXE_LIBS = \

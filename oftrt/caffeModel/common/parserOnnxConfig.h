@@ -68,27 +68,25 @@
  *
  */
 
-using namespace std;
+// using namespace std;
 
 class ParserOnnxConfig : public nvonnxparser::IOnnxConfig
 {
 
-protected:
-    string mModelFilename {};
-    string mTextFilename {};
-    string mFullTextFilename {};
+  protected:
+    string mModelFilename{};
+    string mTextFilename{};
+    string mFullTextFilename{};
     nvinfer1::DataType mModelDtype;
     nvonnxparser::IOnnxConfig::Verbosity mVerbosity;
     bool mPrintLayercInfo;
 
-public:
-    ParserOnnxConfig() :
-         mModelDtype(nvinfer1::DataType::kFLOAT)
-        , mVerbosity(static_cast<int>(nvinfer1::ILogger::Severity::kWARNING))
-        , mPrintLayercInfo(false)
+  public:
+    ParserOnnxConfig() : mModelDtype(nvinfer1::DataType::kFLOAT), mVerbosity(static_cast<int>(nvinfer1::ILogger::Severity::kWARNING)), mPrintLayercInfo(false)
     {
 #ifdef ONNX_DEBUG
-        if (isDebug()) {
+        if (isDebug())
+        {
             std::cout << " ParserOnnxConfig::ctor(): "
                       << this << "\t"
                       << std::endl;
@@ -96,17 +94,18 @@ public:
 #endif
     }
 
-protected:
+  protected:
     ~ParserOnnxConfig()
     {
 #ifdef ONNX_DEBUG
-        if (isDebug()) {
+        if (isDebug())
+        {
             std::cout << "ParserOnnxConfig::dtor(): " << this << std::endl;
         }
 #endif
     }
 
-public:
+  public:
     virtual void setModelDtype(const nvinfer1::DataType modelDtype) { mModelDtype = modelDtype; }
 
     virtual nvinfer1::DataType getModelDtype() const
@@ -114,8 +113,8 @@ public:
         return mModelDtype;
     }
 
-    virtual const char* getModelFileName() const { return mModelFilename.c_str(); }
-    virtual void setModelFileName(const char* onnxFilename)
+    virtual const char *getModelFileName() const { return mModelFilename.c_str(); }
+    virtual void setModelFileName(const char *onnxFilename)
     {
         mModelFilename = string(onnxFilename);
     }
@@ -124,13 +123,13 @@ public:
     virtual void reduceVerbosity() { --mVerbosity; }
     virtual void setVerbosityLevel(nvonnxparser::IOnnxConfig::Verbosity verbosity) { mVerbosity = verbosity; }
 
-    virtual const char* getTextFileName() const { return mTextFilename.c_str(); }
-    virtual void setTextFileName(const char* textFilename)
+    virtual const char *getTextFileName() const { return mTextFilename.c_str(); }
+    virtual void setTextFileName(const char *textFilename)
     {
         mTextFilename = string(textFilename);
     }
-    virtual const char* getFullTextFileName() const { return mFullTextFilename.c_str(); }
-    virtual void setFullTextFileName(const char* fullTextFilename)
+    virtual const char *getFullTextFileName() const { return mFullTextFilename.c_str(); }
+    virtual void setFullTextFileName(const char *fullTextFilename)
     {
         mFullTextFilename = string(fullTextFilename);
     }
@@ -146,7 +145,7 @@ public:
 #endif
     }
 
-    virtual void destroy(){ delete this; }
+    virtual void destroy() { delete this; }
 
 }; // class ParserOnnxConfig
 

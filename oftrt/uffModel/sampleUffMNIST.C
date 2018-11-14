@@ -1,19 +1,3 @@
-// #include <algorithm>
-// #include <chrono>
-// #include <cstdlib>
-// #include <cuda_runtime_api.h>
-// #include <fstream>
-// #include <iostream>
-// #include <string>
-// #include <sys/stat.h>
-// #include <unordered_map>
-// #include <cassert>
-// #include <vector>
-// #include "NvInfer.h"
-// #include "NvUffParser.h"
-
-// #include "NvUtils.h"
-// #include "common.h"
 #include "sampleUffMNIST.H"
 
 using namespace nvuffparser;
@@ -162,9 +146,8 @@ void *createRealCudaBuffer(float *input_p_he, int64_t eltCount, DataType dtype, 
 
 void printOutput(int64_t eltCount, DataType dtype, void *buffer, float out_arr[])
 {
-    std::cout << eltCount << " eltCount" << std::endl;
+    // std::cout << eltCount << " eltCount" << std::endl;
     assert(elementSize(dtype) == sizeof(float));
-    std::cout << "--- OUTPUT ---" << std::endl;
 
     size_t memSize = eltCount * elementSize(dtype);
     float *outputs = new float[eltCount];
@@ -175,15 +158,6 @@ void printOutput(int64_t eltCount, DataType dtype, void *buffer, float out_arr[]
     for (int i = 0; i < eltCount; ++i)
         if (outputs[i] > outputs[maxIdx])
             maxIdx = i;
-
-    for (int64_t eltIdx = 0; eltIdx < eltCount; ++eltIdx)
-    {
-        out_arr[eltIdx] = outputs[eltIdx];
-        std::cout << eltIdx << " => " << outputs[eltIdx] << "\t : ";
-        if (eltIdx == maxIdx)
-            std::cout << "***";
-        std::cout << "\n";
-    }
 
     std::cout << std::endl;
     delete[] outputs;
@@ -203,7 +177,7 @@ ICudaEngine *loadModelAndCreateEngine(const char *uffFile, int maxBatchSize,
         RETURN_AND_LOG(nullptr, ERROR, "Fail to parse");
     builder->setFp16Mode(true);
 #endif
-
+    // std::cout << "network:" << network->getInput() << '\n';
     /* we create the engine */
     builder->setMaxBatchSize(maxBatchSize);
     builder->setMaxWorkspaceSize(MAX_WORKSPACE);

@@ -9,7 +9,7 @@
 #include <cassert>
 #include <chrono>
 #include <cmath>
-#include <cstring>
+// #include <cstring>
 #include <cuda_runtime_api.h>
 #include <fstream>
 #include <iostream>
@@ -19,11 +19,11 @@
 #include <new>
 #include <numeric>
 #include <ratio>
-#include <string>
+// #include <string>
 #include <utility>
-#include <vector>
+// #include <vector>
 
-using namespace std;
+// using namespace std;
 using namespace nvinfer1;
 using namespace plugin;
 
@@ -54,24 +54,35 @@ constexpr long long int operator"" _KB(long long unsigned int val) { return val 
 // Logger for TensorRT info/warning/errors
 class Logger : public nvinfer1::ILogger
 {
-public:
+  public:
     Logger(Severity severity = Severity::kWARNING)
         : reportableSeverity(severity)
     {
     }
 
-    void log(Severity severity, const char* msg) override
+    void log(Severity severity, const char *msg) override
     {
         // suppress messages with severity enum value greater than the reportable
-        if (severity > reportableSeverity) return;
+        if (severity > reportableSeverity)
+            return;
 
         switch (severity)
         {
-        case Severity::kINTERNAL_ERROR: std::cerr << "INTERNAL_ERROR: "; break;
-        case Severity::kERROR: std::cerr << "ERROR: "; break;
-        case Severity::kWARNING: std::cerr << "WARNING: "; break;
-        case Severity::kINFO: std::cerr << "INFO: "; break;
-        default: std::cerr << "UNKNOWN: "; break;
+        case Severity::kINTERNAL_ERROR:
+            std::cerr << "INTERNAL_ERROR: ";
+            break;
+        case Severity::kERROR:
+            std::cerr << "ERROR: ";
+            break;
+        case Severity::kWARNING:
+            std::cerr << "WARNING: ";
+            break;
+        case Severity::kINFO:
+            std::cerr << "INFO: ";
+            break;
+        default:
+            std::cerr << "UNKNOWN: ";
+            break;
         }
         std::cerr << msg << std::endl;
     }
@@ -84,9 +95,9 @@ struct TimeProfiler : public IProfiler
     typedef std::pair<std::string, float> Record;
     std::vector<Record> mProfile;
 
-    virtual void reportLayerTime(const char* layerName, float ms)
+    virtual void reportLayerTime(const char *layerName, float ms)
     {
-        auto record = std::find_if(mProfile.begin(), mProfile.end(), [&](const Record& r) { return r.first == layerName; });
+        auto record = std::find_if(mProfile.begin(), mProfile.end(), [&](const Record &r) { return r.first == layerName; });
         if (record == mProfile.end())
             mProfile.push_back(std::make_pair(layerName, ms));
         else
@@ -106,13 +117,13 @@ struct TimeProfiler : public IProfiler
 
 // Locate path to file, given its filename or filepath suffix and possible dirs it might lie in
 // Function will also walk back MAX_DEPTH dirs from CWD to check for such a file path
-inline std::string locateFile(const std::string& filepathSuffix, const std::vector<std::string>& directories)
+inline std::string locateFile(const std::string &filepathSuffix, const std::vector<std::string> &directories)
 {
     const int MAX_DEPTH{10};
     bool found{false};
     std::string filepath;
 
-    for (auto& dir : directories)
+    for (auto &dir : directories)
     {
         filepath = dir + filepathSuffix;
 
@@ -120,7 +131,8 @@ inline std::string locateFile(const std::string& filepathSuffix, const std::vect
         {
             std::ifstream checkFile(filepath);
             found = checkFile.is_open();
-            if (found) break;
+            if (found)
+                break;
             filepath = "../" + filepath; // Try again in parent dir
         }
 
@@ -135,28 +147,28 @@ inline std::string locateFile(const std::string& filepathSuffix, const std::vect
     if (filepath.empty())
     {
         std::string directoryList = std::accumulate(directories.begin() + 1, directories.end(), directories.front(),
-                                                    [](const std::string& a, const std::string& b) { return a + "\n\t" + b; });
+                                                    [](const std::string &a, const std::string &b) { return a + "\n\t" + b; });
         throw std::runtime_error("Could not find " + filepathSuffix + " in data directories:\n\t" + directoryList);
     }
     return filepath;
 }
 
-inline void readPGMFile(const std::string& fileName, uint8_t* buffer, int inH, int inW)
+inline void readPGMFile(const std::string &fileName, uint8_t *buffer, int inH, int inW)
 {
     std::ifstream infile(fileName, std::ifstream::binary);
     assert(infile.is_open() && "Attempting to read from a file that is not open.");
     std::string magic, h, w, max;
     infile >> magic >> h >> w >> max;
     infile.seekg(1, infile.cur);
-    infile.read(reinterpret_cast<char*>(buffer), inH * inW);
+    infile.read(reinterpret_cast<char *>(buffer), inH * inW);
 }
 
 namespace samplesCommon
 {
 
-inline void* safeCudaMalloc(size_t memSize)
+inline void *safeCudaMalloc(size_t memSize)
 {
-    void* deviceMem;
+    void *deviceMem;
     CHECK(cudaMalloc(&deviceMem, memSize));
     if (deviceMem == nullptr)
     {
@@ -174,7 +186,7 @@ inline bool isDebug()
 struct InferDeleter
 {
     template <typename T>
-    void operator()(T* obj) const
+    void operator()(T *obj) const
     {
         if (obj)
         {
@@ -184,7 +196,7 @@ struct InferDeleter
 };
 
 template <typename T>
-inline std::shared_ptr<T> infer_object(T* obj)
+inline std::shared_ptr<T> infer_object(T *obj)
 {
     if (!obj)
     {
@@ -213,18 +225,19 @@ inline std::vector<size_t> argsort(Iter begin, Iter end, bool reverse = false)
     return inds;
 }
 
-inline bool readReferenceFile(const std::string& fileName, std::vector<std::string>& refVector)
+inline bool readReferenceFile(const std::string &fileName, std::vector<std::string> &refVector)
 {
     std::ifstream infile(fileName);
     if (!infile.is_open())
     {
-        cout << "ERROR: readReferenceFile: Attempting to read from a file that is not open." << endl;
+        std::cout << "ERROR: readReferenceFile: Attempting to read from a file that is not open." << std::endl;
         return false;
     }
     std::string line;
     while (std::getline(infile, line))
     {
-        if (line.empty()) continue;
+        if (line.empty())
+            continue;
         refVector.push_back(line);
     }
     infile.close();
@@ -232,7 +245,7 @@ inline bool readReferenceFile(const std::string& fileName, std::vector<std::stri
 }
 
 template <typename result_vector_t>
-inline std::vector<std::string> classify(const vector<string>& refVector, const result_vector_t& output, const size_t topK)
+inline std::vector<std::string> classify(const std::vector<std::string> &refVector, const result_vector_t &output, const size_t topK)
 {
     auto inds = samplesCommon::argsort(output.cbegin(), output.cend(), true);
     std::vector<std::string> result;
@@ -245,21 +258,21 @@ inline std::vector<std::string> classify(const vector<string>& refVector, const 
 
 //...LG returns top K indices, not values.
 template <typename T>
-inline vector<size_t> topK(const vector<T> inp, const size_t k)
+inline std::vector<size_t> topK(const std::vector<T> inp, const size_t k)
 {
-    vector<size_t> result;
+    std::vector<size_t> result;
     std::vector<size_t> inds = samplesCommon::argsort(inp.cbegin(), inp.cend(), true);
     result.assign(inds.begin(), inds.begin() + k);
     return result;
 }
 
 template <typename T>
-inline bool readASCIIFile(const string& fileName, const size_t size, vector<T>& out)
+inline bool readASCIIFile(const std::string &fileName, const size_t size, std::vector<T> &out)
 {
     std::ifstream infile(fileName);
     if (!infile.is_open())
     {
-        cout << "ERROR readASCIIFile: Attempting to read from a file that is not open." << endl;
+        std::cout << "ERROR readASCIIFile: Attempting to read from a file that is not open." << std::endl;
         return false;
     }
     out.clear();
@@ -270,12 +283,12 @@ inline bool readASCIIFile(const string& fileName, const size_t size, vector<T>& 
 }
 
 template <typename T>
-inline bool writeASCIIFile(const string& fileName, const vector<T>& in)
+inline bool writeASCIIFile(const std::string &fileName, const std::vector<T> &in)
 {
     std::ofstream outfile(fileName);
     if (!outfile.is_open())
     {
-        cout << "ERROR: writeASCIIFile: Attempting to write to a file that is not open." << endl;
+        std::cout << "ERROR: writeASCIIFile: Attempting to write to a file that is not open." << std::endl;
         return false;
     }
     for (auto fn : in)
@@ -300,32 +313,32 @@ inline void print_version()
               << NV_TENSORRT_BUILD << std::endl;
 }
 
-inline string getFileType(const string& filepath)
+inline std::string getFileType(const std::string &filepath)
 {
     return filepath.substr(filepath.find_last_of(".") + 1);
 }
 
-inline string toLower(const string& inp)
+inline std::string toLower(const std::string &inp)
 {
-    string out = inp;
+    std::string out = inp;
     std::transform(out.begin(), out.end(), out.begin(), ::tolower);
     return out;
 }
 
-inline void enableDLA(IBuilder* b, int dlaID)
+inline void enableDLA(IBuilder *b, int dlaID)
 {
     b->allowGPUFallback(true);
     b->setFp16Mode(true);
     b->setDefaultDeviceType(static_cast<DeviceType>(dlaID));
 }
 
-inline int parseDLA(int argc, char** argv)
+inline int parseDLA(int argc, char **argv)
 {
     for (int i = 1; i < argc; i++)
     {
         std::string arg(argv[i]);
-        if (arg.substr(0,9) == "--useDLA=" && arg.size() > 9)
-            return stoi(argv[i]+9);
+        if (arg.substr(0, 9) == "--useDLA=" && arg.size() > 9)
+            return std::stoi(argv[i] + 9);
     }
     return -1;
 }
@@ -334,16 +347,20 @@ inline unsigned int getElementSize(nvinfer1::DataType t)
 {
     switch (t)
     {
-    case nvinfer1::DataType::kINT32: return 4;
-    case nvinfer1::DataType::kFLOAT: return 4;
-    case nvinfer1::DataType::kHALF: return 2;
-    case nvinfer1::DataType::kINT8: return 1;
+    case nvinfer1::DataType::kINT32:
+        return 4;
+    case nvinfer1::DataType::kFLOAT:
+        return 4;
+    case nvinfer1::DataType::kHALF:
+        return 2;
+    case nvinfer1::DataType::kINT8:
+        return 1;
     }
     throw std::runtime_error("Invalid DataType.");
     return 0;
 }
 
-inline int64_t volume(const nvinfer1::Dims& d)
+inline int64_t volume(const nvinfer1::Dims &d)
 {
     return std::accumulate(d.d, d.d + d.nbDims, 1, std::multiplies<int64_t>());
 }
@@ -362,7 +379,7 @@ struct BBox
 };
 
 template <int C, int H, int W>
-inline void writePPMFileWithBBox(const std::string& filename, PPM<C, H, W>& ppm, const BBox& bbox)
+inline void writePPMFileWithBBox(const std::string &filename, PPM<C, H, W> &ppm, const BBox &bbox)
 {
     std::ofstream outfile("./" + filename, std::ofstream::binary);
     assert(!outfile.fail());
@@ -397,12 +414,12 @@ inline void writePPMFileWithBBox(const std::string& filename, PPM<C, H, W>& ppm,
         ppm.buffer[(y * ppm.w + x2) * 3 + 1] = 0;
         ppm.buffer[(y * ppm.w + x2) * 3 + 2] = 0;
     }
-    outfile.write(reinterpret_cast<char*>(ppm.buffer), ppm.w * ppm.h * 3);
+    outfile.write(reinterpret_cast<char *>(ppm.buffer), ppm.w * ppm.h * 3);
 }
 
 class TimerBase
 {
-public:
+  public:
     virtual void start() {}
     virtual void stop() {}
     float microseconds() const noexcept { return mMs * 1000.f; }
@@ -410,13 +427,13 @@ public:
     float seconds() const noexcept { return mMs / 1000.f; }
     void reset() noexcept { mMs = 0.f; }
 
-protected:
+  protected:
     float mMs{0.0f};
 };
 
 class GpuTimer : public TimerBase
 {
-public:
+  public:
     GpuTimer(cudaStream_t stream)
         : mStream(stream)
     {
@@ -438,7 +455,7 @@ public:
         mMs += ms;
     }
 
-private:
+  private:
     cudaEvent_t mStart, mStop;
     cudaStream_t mStream;
 }; // class GpuTimer
@@ -446,7 +463,7 @@ private:
 template <typename Clock>
 class CpuTimer : public TimerBase
 {
-public:
+  public:
     using clock_type = Clock;
 
     void start() { mStart = Clock::now(); }
@@ -456,7 +473,7 @@ public:
         mMs += std::chrono::duration<float, std::milli>{mStop - mStart}.count();
     }
 
-private:
+  private:
     std::chrono::time_point<Clock> mStart, mStop;
 }; // class CpuTimer
 

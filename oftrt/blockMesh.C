@@ -77,6 +77,7 @@ using namespace Foam;
 
 int main(int argc, char *argv[])
 {
+
     // uff loader
     int maxBatchSize = 10;
     int batchSize = 2;
@@ -93,7 +94,7 @@ int main(int argc, char *argv[])
 
     nvinfer1::ICudaEngine *engine = loadModelAndCreateEngine(modelFile.c_str(), maxBatchSize, parser);
     if (!engine)
-        std::cout << 'engine fail\n';
+        std::cout << "engine fail\n";
     parser->destroy();
     execute(*engine, batchSize, input_p_he, output_real);
     for (int i = 0; i < output_real.size(); i++)
@@ -166,7 +167,7 @@ int main(int argc, char *argv[])
 #include "addRegionOption.H"
 #include "setRootCase.H"
 #include "createTime.H"
-
+    // sample.infer(b);
     const word dictName("blockMeshDict");
 
     word regionName;
