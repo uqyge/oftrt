@@ -62,13 +62,15 @@ int main(int argc, char *argv[])
         Info << "Time = " << runTime.timeName() << nl << endl;
 
         std::vector<float> output_real;
+        float m_in[2] = {4.20000000e+01, -1.24467032e+05};
+        float s_in[2] = {4.89897949e+00, 1.23205254e+05};
         float inputs[in_1.size() * 2];
         int i = 0;
         const cellList &cells = mesh.cells();
         forAll(cells, celli)
         {
-            inputs[i++] = in_1[celli];
-            inputs[i++] = in_2[celli];
+            inputs[i++] = (in_1[celli] / 1e5 - m_in[0]) / s_in[0],
+            inputs[i++] = (in_2[celli] - m_in[1]) / s_in[1];
         }
         std::vector<float> input_p_he(inputs, inputs + in_1.size() * 2);
 
@@ -78,7 +80,7 @@ int main(int argc, char *argv[])
         Info << "input_p_he:" << input_p_he[1] << '\n';
 
         // // uff loader
-        int maxBatchSize = 10;
+        int maxBatchSize = 1024;
         int batchSize = 2;
 
         auto parser = createUffParser();
@@ -98,12 +100,14 @@ int main(int argc, char *argv[])
 
         execute(*engine, batchSize, input_p_he, output_real);
         engine->destroy();
+        float m_out[4] = {1.69567010e+02, 2.19935016e+02, 2.59815793e-05, 1.72609032e+03};
+        float s_out[4] = {2.26427039e+02, 7.50554975e+01, 2.89748538e-05, 1.51159205e+03};
         forAll(cells, celli)
         {
-            out_1[celli] = output_real[celli * 4];
-            out_2[celli] = output_real[celli * 4 + 1];
-            out_3[celli] = output_real[celli * 4 + 2];
-            out_4[celli] = output_real[celli * 4 + 3];
+            out_1[celli] = output_real[celli * 4] * s_out[0] + m_out[0];
+            out_2[celli] = output_real[celli * 4 + 1] * s_out[1] + m_out[1];
+            out_3[celli] = output_real[celli * 4 + 2] * s_out[2] + m_out[2];
+            out_4[celli] = output_real[celli * 4 + 3] * s_out[3] + m_out[3];
         }
 
         // for (int i = 0; i < output_real.size(); i++)
