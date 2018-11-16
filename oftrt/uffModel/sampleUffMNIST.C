@@ -43,7 +43,7 @@ inline unsigned int elementSize(DataType t)
 
 static const int INPUT_H = 2;
 static const int INPUT_W = 1;
-static const int OUTPUT_SIZE = 10;
+// static const int OUTPUT_SIZE = 10;
 
 std::string locateFile(const std::string &input)
 {
@@ -82,11 +82,10 @@ calculateBindingBufferSizes(const ICudaEngine &engine, int nbBindings, int batch
 void *createRealCudaBuffer(float *input_p_he, int64_t eltCount, DataType dtype, int run)
 {
     /* in that specific case, eltCount == INPUT_H * INPUT_W */
-    std::cout << eltCount << '\n';
+    // std::cout << eltCount << '\n';
     // std::cout << input_p_he[0] << '\n'
     //           << input_p_he[1] << '\n';
-    //   << input_p_he[2] << '\n'
-    //   << input_p_he[3] << '\n';
+
     // assert(eltCount == INPUT_H * INPUT_W);
     assert(elementSize(dtype) == sizeof(float));
 
@@ -96,12 +95,12 @@ void *createRealCudaBuffer(float *input_p_he, int64_t eltCount, DataType dtype, 
     for (int i = 0; i < eltCount; i++)
     {
         inputs[i] = input_p_he[i];
-        std::cout << inputs[i] << '\n';
+        // std::cout << inputs[i] << '\n';
     }
-    // inputs = input_p_he;
 
     void *deviceMem = safeCudaMalloc(memSize);
-    CHECK(cudaMemcpy(deviceMem, inputs, memSize, cudaMemcpyHostToDevice));
+    // CHECK(cudaMemcpy(deviceMem, inputs, memSize, cudaMemcpyHostToDevice));
+    CHECK(cudaMemcpy(deviceMem, input_p_he, memSize, cudaMemcpyHostToDevice));
 
     delete[] inputs;
     return deviceMem;
@@ -129,7 +128,7 @@ void printOutput(int64_t eltCount, DataType dtype, void *buffer, float out_arr[]
         //     std::cout << "***";
         // std::cout << "\n";
     }
-    std::cout << std::endl;
+    // std::cout << std::endl;
     delete[] outputs;
 }
 
@@ -191,12 +190,14 @@ void execute(ICudaEngine &engine, int batchSize, std::vector<float> &input_p_he,
 
     auto bufferSizesInput = buffersSizes[bindingIdxInput];
 
-    int iterations = 1;
-    int numberRun = 2;
-    numberRun = input_p_he.size() / bufferSizesInput.first;
+    int numberRun;
+    numberRun = ceil((float)input_p_he.size() / bufferSizesInput.first);
+    std::cout << "rounds:in " << input_p_he.size() << '\n';
+    std::cout << "rounds:buffer " << bufferSizesInput.first << '\n';
     std::cout << "rounds:" << numberRun << '\n';
-    float input_batch[batchSize * INPUT_H * INPUT_W];
-    for (int i = 0; i < iterations; i++)
+    float input_batch[batchSize * INPUT_H * INPUT_W] = {0};
+    // int iterations = 1;
+    // for (int i = 0; i < iterations; i++)
     {
         float total = 0, ms;
         for (int run = 0; run < numberRun; run++)
@@ -234,8 +235,9 @@ void execute(ICudaEngine &engine, int batchSize, std::vector<float> &input_p_he,
             CHECK(cudaFree(buffers[bindingIdxInput]));
         }
 
-        total /= numberRun;
-        std::cout << "Average over " << numberRun << " runs is " << total << " ms." << std::endl;
+        // total /= numberRun;
+        // std::cout << "Average over " << numberRun << " runs is " << total << " ms." << std::endl;
+        std::cout << "Total time is " << total << " ms." << std::endl;
     }
 
     for (int bindingIdx = 0; bindingIdx < nbBindings; ++bindingIdx)

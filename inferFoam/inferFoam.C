@@ -34,11 +34,6 @@ Description
 
 #include "fpe.H"
 #include "sampleUffMNIST.H"
-// #include "sampleMNIST.H"
-// samplesCommon::Args args;
-// MNISTSampleParams params = initializeSampleParams(args);
-// std::string locateFile(const std::string &input);
-// using namespace Foam;
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 int main(int argc, char *argv[])
@@ -74,14 +69,14 @@ int main(int argc, char *argv[])
         }
         std::vector<float> input_p_he(inputs, inputs + in_1.size() * 2);
 
-        Info << "inputs:" << inputs[0] << '\n';
-        Info << "inputs:" << inputs[1] << '\n';
-        Info << "input_p_he:" << input_p_he[0] << '\n';
-        Info << "input_p_he:" << input_p_he[1] << '\n';
+        // Info << "inputs:" << inputs[0] << '\n';
+        // Info << "inputs:" << inputs[1] << '\n';
+        // Info << "input_p_he:" << input_p_he[0] << '\n';
+        // Info << "input_p_he:" << input_p_he[1] << '\n';
 
         // // uff loader
-        int maxBatchSize = 1024;
-        int batchSize = 2;
+        int maxBatchSize = 1024 * 32;
+        int batchSize = 256 * 8;
 
         auto parser = createUffParser();
         parser->registerInput("input_1", Dims3(1, 2, 1), UffInputOrder::kNCHW);
