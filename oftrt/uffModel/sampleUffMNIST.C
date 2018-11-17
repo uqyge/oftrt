@@ -191,17 +191,19 @@ void execute(ICudaEngine &engine, int batchSize, std::vector<float> &input_p_he,
     auto bufferSizesInput = buffersSizes[bindingIdxInput];
 
     int numberRun;
-    numberRun = ceil((float)input_p_he.size() / bufferSizesInput.first);
+    numberRun = ceil(float(input_p_he.size()) / bufferSizesInput.first);
     std::cout << "rounds:in " << input_p_he.size() << '\n';
-    std::cout << "rounds:buffer " << bufferSizesInput.first << '\n';
     std::cout << "rounds:" << numberRun << '\n';
     float input_batch[batchSize * INPUT_H * INPUT_W] = {0};
     // int iterations = 1;
     // for (int i = 0; i < iterations; i++)
     {
-        float total = 0, ms;
+        float total = 0, ms, coutt, cint;
+        float tot_in = 0;
+        float tot_out = 0;
         for (int run = 0; run < numberRun; run++)
         {
+            auto t_start = std::chrono::high_resolution_clock::now();
             // buffers[bindingIdxInput] = createMnistCudaBuffer(bufferSizesInput.first,
             //                                                  bufferSizesInput.second, run);
             for (int i = 0; i < batchSize * INPUT_H * INPUT_W; i++)
@@ -211,12 +213,25 @@ void execute(ICudaEngine &engine, int batchSize, std::vector<float> &input_p_he,
             buffers[bindingIdxInput] = createRealCudaBuffer(input_batch,
                                                             bufferSizesInput.first,
                                                             bufferSizesInput.second, run);
+            auto t_cin_e = std::chrono::high_resolution_clock::now();
+            cint = std::chrono::duration<float, std::milli>(t_cin_e - t_start).count();
+            tot_in += cint;
+            std::cout << "memory copy d2h time is " << cint << " ms." << std::endl;
 
-            auto t_start = std::chrono::high_resolution_clock::now();
-            context->execute(batchSize, &buffers[0]);
-            auto t_end = std::chrono::high_resolution_clock::now();
-            ms = std::chrono::duration<float, std::milli>(t_end - t_start).count();
-            total += ms;
+            // auto t_start = std::chrono::high_resolution_clock::now();
+            // context->execute(batchSize, &buffers[0]);
+            cudaStream_t stream;
+            CHECK(cudaStreamCreate(&stream));
+            context->enqueue(batchSize, &buffers[0], stream, nullptr);
+            // Wait for the work in the stream to complete
+            // cudaStreamSynchronize(stream);
+
+            // Release stream
+            // cudaStreamDestroy(stream);
+
+            // auto t_end = std::chrono::high_resolution_clock::now();
+            // ms = std::chrono::duration<float, std::milli>(t_end - t_start).count();
+            // total += ms;
 
             for (int bindingIdx = 0; bindingIdx < nbBindings; ++bindingIdx)
             {
@@ -225,19 +240,31 @@ void execute(ICudaEngine &engine, int batchSize, std::vector<float> &input_p_he,
 
                 auto bufferSizesOutput = buffersSizes[bindingIdx];
                 float out_arr[bufferSizesOutput.first];
+                auto t_cout_s = std::chrono::high_resolution_clock::now();
                 printOutput(bufferSizesOutput.first, bufferSizesOutput.second,
                             buffers[bindingIdx], out_arr);
+                auto t_cout_e = std::chrono::high_resolution_clock::now();
+                coutt = std::chrono::duration<float, std::milli>(t_cout_e - t_cout_s).count();
+                std::cout << "memory copy d2h time is " << coutt << " ms." << std::endl;
+                tot_out += coutt;
                 output_real.insert(
                     output_real.end(),
                     out_arr,
                     out_arr + bufferSizesOutput.first);
             }
             CHECK(cudaFree(buffers[bindingIdxInput]));
+            auto t_end = std::chrono::high_resolution_clock::now();
+            ms = std::chrono::duration<float, std::milli>(t_end - t_start).count();
+            total += ms;
         }
 
         // total /= numberRun;
         // std::cout << "Average over " << numberRun << " runs is " << total << " ms." << std::endl;
         std::cout << "Total time is " << total << " ms." << std::endl;
+        float memTime = tot_in + tot_out;
+        float annTime = total - memTime;
+        std::cout << "Total memory time is " << memTime << " ms." << std::endl;
+        std::cout << "Total network running time is " << annTime << " ms." << std::endl;
     }
 
     for (int bindingIdx = 0; bindingIdx < nbBindings; ++bindingIdx)

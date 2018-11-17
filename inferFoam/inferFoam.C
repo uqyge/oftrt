@@ -75,11 +75,11 @@ int main(int argc, char *argv[])
         // Info << "input_p_he:" << input_p_he[1] << '\n';
 
         // // uff loader
-        int maxBatchSize = 1024 * 32;
-        int batchSize = 256 * 8;
+        int maxBatchSize = 1024 * 64;
+        int batchSize = 1024 * 8 * 8;
 
         auto parser = createUffParser();
-        parser->registerInput("input_1", Dims3(1, 2, 1), UffInputOrder::kNCHW);
+        parser->registerInput("input_1", Dims3(1, 1, 2), UffInputOrder::kNCHW);
         // parser->registerInput("input_1", Dims2(2, 1), UffInputOrder::kNCHW);
         parser->registerOutput("dense_2/BiasAdd");
 
