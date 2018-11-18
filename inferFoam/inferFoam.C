@@ -55,7 +55,16 @@ int main(int argc, char *argv[])
 
     Info << "\nStarting time loop\n"
          << endl;
-    // bool success = sample.infer(b);
+
+    // initial model object
+    params.dataDirs.push_back("./data/");
+    params.batchSize = 1024;
+
+    uffModel sample(params);
+
+    FPExceptionsGuard fpguard;
+    sample.build();
+
     while (runTime.loop())
     {
         Info << "Time = " << runTime.timeName() << nl << endl;
@@ -63,10 +72,10 @@ int main(int argc, char *argv[])
         std::vector<float> output_real;
         float m_in[2] = {4.20000000e+01, -1.24467032e+05};
         float s_in[2] = {4.89897949e+00, 1.23205254e+05};
-        const int scaling = 20;
+        const int scaling = 1;
         float inputs[in_1.size() * 2 * scaling];
-        std::cout << "size " << sizeof(inputs[0]) << '\n';
-        std::cout << "size " << sizeof(in_1[0]) << '\n';
+        // std::cout << "size " << sizeof(inputs) << '\n';
+        // std::cout << "size " << sizeof(in_1[0]) << '\n';
         int i = 0;
         const cellList &cells = mesh.cells();
         forAll(cells, celli)
@@ -79,24 +88,12 @@ int main(int argc, char *argv[])
         }
         Info << "input size " << i << endl;
         std::vector<float> input_p_he(inputs, inputs + in_1.size() * 2 * scaling);
-        params.dataDirs.push_back("./data/");
-        params.batchSize = 1024;
-
-        // output holder
-        // std::vector<float> output_real;
-        // initial model object
-        uffModel sample(params);
-        FPExceptionsGuard fpguard;
-        sample.build();
 
         bool success = sample.infer(input_p_he, output_real);
 
-        // for (auto a : b)
-        // {
-        //     std::cout << "b: " << a << '\n';
-        // }
-        sample.teardown();
-
+        std::cout << success
+                  << " uff inference finished.\n";
+        std::cout << "output size " << output_real.size() << "\n";
         float m_out[4] = {1.69567010e+02, 2.19935016e+02, 2.59815793e-05, 1.72609032e+03};
         float s_out[4] = {2.26427039e+02, 7.50554975e+01, 2.89748538e-05, 1.51159205e+03};
         forAll(cells, celli)
@@ -106,12 +103,6 @@ int main(int argc, char *argv[])
             out_3[celli] = output_real[celli * 4 + 2] * s_out[2] + m_out[2];
             out_4[celli] = output_real[celli * 4 + 3] * s_out[3] + m_out[3];
         }
-
-        // for (int i = 0; i < output_real.size(); i++)
-        // {
-        //     std::cout << "output_real " << i << ":" << output_real[i] << '\n';
-        // }
-        std::cout << "uff inference finished.\n";
 
 #include "CourantNo.H"
 
@@ -169,7 +160,7 @@ int main(int argc, char *argv[])
              << "  ClockTime = " << runTime.elapsedClockTime() << " s"
              << nl << endl;
     }
-
+    sample.teardown();
     Info << "End\n"
          << endl;
 

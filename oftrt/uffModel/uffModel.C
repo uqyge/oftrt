@@ -130,11 +130,10 @@ bool uffModel::infer(std::vector<float> &data_in, std::vector<float> &out)
         return false;
 
     //prepare input
-
     const int inputH = 2;
     const int inputW = 1;
     // float data[4] = {0.0, 0.0, 0.0, 0.0};
-    const int tot_n = ceil(float(data_in.size()) / mParams.batchSize);
+    const int tot_n = ceil(float(data_in.size()) / (mParams.batchSize * inputH * inputW));
     // output holder
     std::vector<float> out_vec;
     assert(mParams.inputTensorNames.size() == 1);
@@ -183,8 +182,9 @@ bool uffModel::infer(std::vector<float> &data_in, std::vector<float> &out)
     std::cout << "totol time is " << total << "ms."
               << "\n";
     // std::cout << "m out size: " << mOutputDims.d[0] << '\n';
-    out_vec.resize(tot_n * outSize);
+    out_vec.resize(data_in.size() / (inputH * inputW) * outSize);
     out = out_vec;
+    std::cout << "out is " << out.size() << "\n";
     return 0;
 }
 
@@ -197,5 +197,6 @@ bool uffModel::teardown()
     //! \note It is not safe to use any other part of the protocol buffers library after
     //! ShutdownProtobufLibrary() has been called.
     // nvcaffeparser1::shutdownProtobufLibrary();
+    nvuffparser::shutdownProtobufLibrary();
     return true;
 }
