@@ -1,0 +1,5 @@
+EXE_INC = \
+    -I../caffeModel/common \
+    -I/usr/local/cuda-10.0/include 
+
+EXE_LIBS = \

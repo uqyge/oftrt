@@ -1,2 +1,2 @@
 SOURCE = \
-sampleUffMNIST.C 
+uffModel.C 

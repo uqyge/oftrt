@@ -219,10 +219,10 @@ void execute(ICudaEngine &engine, int batchSize, std::vector<float> &input_p_he,
             std::cout << "memory copy d2h time is " << cint << " ms." << std::endl;
 
             // auto t_start = std::chrono::high_resolution_clock::now();
-            // context->execute(batchSize, &buffers[0]);
-            cudaStream_t stream;
-            CHECK(cudaStreamCreate(&stream));
-            context->enqueue(batchSize, &buffers[0], stream, nullptr);
+            context->execute(batchSize, &buffers[0]);
+            // cudaStream_t stream;
+            // CHECK(cudaStreamCreate(&stream));
+            // context->enqueue(batchSize, &buffers[0], stream, nullptr);
             // Wait for the work in the stream to complete
             // cudaStreamSynchronize(stream);
 
@@ -245,7 +245,7 @@ void execute(ICudaEngine &engine, int batchSize, std::vector<float> &input_p_he,
                             buffers[bindingIdx], out_arr);
                 auto t_cout_e = std::chrono::high_resolution_clock::now();
                 coutt = std::chrono::duration<float, std::milli>(t_cout_e - t_cout_s).count();
-                std::cout << "memory copy d2h time is " << coutt << " ms." << std::endl;
+                std::cout << "memory copy h2d time is " << coutt << " ms." << std::endl;
                 tot_out += coutt;
                 output_real.insert(
                     output_real.end(),

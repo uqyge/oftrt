@@ -1,1 +1,0 @@
-../sampleUffMNIST.C

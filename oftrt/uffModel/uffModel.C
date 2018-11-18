@@ -1,6 +1,6 @@
-#include <sampleMNIST.H>
+#include "uffModel.H"
 
-bool SampleMNIST::build()
+bool uffModel::build()
 {
     auto builder = SampleUniquePtr<nvinfer1::IBuilder>(nvinfer1::createInferBuilder(gLogger));
     if (!builder)
@@ -10,7 +10,12 @@ bool SampleMNIST::build()
     if (!network)
         return false;
 
-    auto parser = SampleUniquePtr<nvcaffeparser1::ICaffeParser>(nvcaffeparser1::createCaffeParser());
+    // auto parser = SampleUniquePtr<nvcaffeparser1::ICaffeParser>(nvcaffeparser1::createCaffeParser());
+    auto parser = SampleUniquePtr<nvuffparser::IUffParser>(nvuffparser::createUffParser());
+    parser->registerInput("input_1", Dims3(1, 1, 2), nvuffparser::UffInputOrder::kNCHW);
+    // parser->registerInput("input_1", Dims2(2, 1), UffInputOrder::kNCHW);
+    parser->registerOutput("dense_2/BiasAdd");
+
     if (!parser)
         return false;
 
@@ -31,7 +36,6 @@ bool SampleMNIST::build()
     // mOutputDims = network->getOutput(0)->getDimensions();
     // mOutputDims = mInputDims;
     outSize = network->getOutput(0)->getDimensions().d[0];
-    std::cout << network->getOutput(0)->getDimensions().d[0];
 
     assert(mInputDims.nbDims == 3);
 
@@ -41,7 +45,7 @@ bool SampleMNIST::build()
 //!
 //! \brief Reads the input and mean data, preprocesses, and stores the result in a managed buffer
 //!
-bool SampleMNIST::processInput(const samplesCommon::BufferManager &buffers, const std::string &inputTensorName, int inputFileIdx) const
+bool uffModel::processInput(const samplesCommon::BufferManager &buffers, const std::string &inputTensorName, int inputFileIdx) const
 {
     std::cout << "d0:" << mInputDims.d[0] << '\n'
               << "d1:" << mInputDims.d[1] << '\n'
@@ -72,7 +76,7 @@ bool SampleMNIST::processInput(const samplesCommon::BufferManager &buffers, cons
 //!
 //! \brief Verifies that the output is correct and prints it
 //!
-bool SampleMNIST::verifyOutput(const samplesCommon::BufferManager &buffers, const std::string &outputTensorName, int groundTruthDigit) const
+bool uffModel::verifyOutput(const samplesCommon::BufferManager &buffers, const std::string &outputTensorName, int groundTruthDigit) const
 {
     const float *prob = static_cast<const float *>(buffers.getHostBuffer(outputTensorName));
 
@@ -105,29 +109,9 @@ bool SampleMNIST::verifyOutput(const samplesCommon::BufferManager &buffers, cons
 //!
 //! \param builder Pointer to the engine builder
 //!
-void SampleMNIST::constructNetwork(SampleUniquePtr<nvinfer1::IBuilder> &builder, SampleUniquePtr<nvinfer1::INetworkDefinition> &network, SampleUniquePtr<nvcaffeparser1::ICaffeParser> &parser)
+void uffModel::constructNetwork(SampleUniquePtr<nvinfer1::IBuilder> &builder, SampleUniquePtr<nvinfer1::INetworkDefinition> &network, SampleUniquePtr<nvuffparser::IUffParser> &parser)
 {
-    const nvcaffeparser1::IBlobNameToTensor *blobNameToTensor = parser->parse(
-        locateFile(mParams.prototxtFileName, mParams.dataDirs).c_str(),
-        locateFile(mParams.weightsFileName, mParams.dataDirs).c_str(),
-        *network,
-        nvinfer1::DataType::kFLOAT);
-
-    for (auto &s : mParams.outputTensorNames)
-        network->markOutput(*blobNameToTensor->find(s.c_str()));
-
-    // nvinfer1::Dims outDims;
-    // outDims = network->getOutput(0)->getDimensions();
-    // std::cout << "outdims" << outDims.d[0] << '\n';
-
-    // add mean subtraction to the beginning of the network
-    Dims inputDims = network->getInput(0)->getDimensions();
-    mMeanBlob = SampleUniquePtr<nvcaffeparser1::IBinaryProtoBlob>(parser->parseBinaryProto(locateFile(mParams.meanFileName, mParams.dataDirs).c_str()));
-    Weights meanWeights{DataType::kFLOAT, mMeanBlob->getData(), inputDims.d[1] * inputDims.d[2]};
-
-    auto mean = network->addConstant(Dims3(1, inputDims.d[1], inputDims.d[2]), meanWeights);
-    auto meanSub = network->addElementWise(*network->getInput(0), *mean->getOutput(0), ElementWiseOperation::kSUB);
-    network->getLayer(0)->setInput(0, *meanSub->getOutput(0));
+    parser->parse(locateFile(mParams.uffFileName, mParams.dataDirs).c_str(), *network, nvinfer1::DataType::kFLOAT);
 }
 
 //!
@@ -136,7 +120,7 @@ void SampleMNIST::constructNetwork(SampleUniquePtr<nvinfer1::IBuilder> &builder,
 //! \details This function is the main execution function of the sample. It allocates
 //!          the buffer, sets inputs, executes the engine, and verifies the output.
 //!
-bool SampleMNIST::infer(std::vector<float> &out)
+bool uffModel::infer(std::vector<float> &data_in, std::vector<float> &out)
 {
     // Create RAII buffer manager object
     samplesCommon::BufferManager buffers(mEngine, mParams.batchSize);
@@ -145,47 +129,30 @@ bool SampleMNIST::infer(std::vector<float> &out)
     if (!context)
         return false;
 
-    // Pick a random digit to try to infer
-    srand(time(NULL));
-    // const int digit = rand() % 10;
-
     //prepare input
-    const int inputH = mInputDims.d[1];
-    const int inputW = mInputDims.d[2];
-    uint8_t fileData_1[inputH * inputW];
-    uint8_t fileData_3[inputH * inputW];
-    uint8_t fileData_5[inputH * inputW];
-    readPGMFile(locateFile(std::to_string(1) + ".pgm", mParams.dataDirs), fileData_1, inputH, inputW);
-    readPGMFile(locateFile(std::to_string(3) + ".pgm", mParams.dataDirs), fileData_3, inputH, inputW);
-    readPGMFile(locateFile(std::to_string(5) + ".pgm", mParams.dataDirs), fileData_5, inputH, inputW);
-    const int tot_n = 3;
-    float data[tot_n * inputH * inputW];
-    for (int i = 0; i < inputH * inputW; i++)
-    {
-        data[i] = float(fileData_1[i]);
-        data[1 * inputH * inputW + i] = float(fileData_3[i]);
-        data[2 * inputH * inputW + i] = float(fileData_5[i]);
-    }
 
+    const int inputH = 2;
+    const int inputW = 1;
+    // float data[4] = {0.0, 0.0, 0.0, 0.0};
+    const int tot_n = ceil(float(data_in.size()) / mParams.batchSize);
     // output holder
     std::vector<float> out_vec;
+    assert(mParams.inputTensorNames.size() == 1);
+    // std::cout << "input name: " << mParams.inputTensorNames[0] << '\n';
+    std::cout << "There are " << tot_n << " batches.\n";
+    auto t_start = std::chrono::high_resolution_clock::now();
     for (int n = 0; n < tot_n; n += mParams.batchSize)
     {
-
-        // Read the input data into the managed buffers
-        // There should be just 1 input tensor
-        assert(mParams.inputTensorNames.size() == 1);
-        std::cout << "input name: " << mParams.inputTensorNames[0] << '\n';
         float *hostInputBuffer = static_cast<float *>(buffers.getHostBuffer(mParams.inputTensorNames[0]));
         for (int i = 0; i < mParams.batchSize * inputH * inputW; i++)
-            hostInputBuffer[i] = float(data[i + n * inputH * inputW]);
+            hostInputBuffer[i] = float(data_in[i + n * inputH * inputW]);
 
         // Create CUDA stream for the execution of this inference.
         cudaStream_t stream;
         CHECK(cudaStreamCreate(&stream));
-        P
-            // Asynchronously copy data from host input buffers to device input buffers
-            buffers.copyInputToDeviceAsync(stream);
+
+        // Asynchronously copy data from host input buffers to device input buffers
+        buffers.copyInputToDeviceAsync(stream);
 
         // Asynchronously enqueue the inference work
         if (!context->enqueue(mParams.batchSize, buffers.getDeviceBindings().data(), stream, nullptr))
@@ -211,6 +178,10 @@ bool SampleMNIST::infer(std::vector<float> &out)
                        prob_out,
                        prob_out + mParams.batchSize * outSize);
     }
+    auto t_end = std::chrono::high_resolution_clock::now();
+    auto total = std::chrono::duration<float, std::milli>(t_end - t_start).count();
+    std::cout << "totol time is " << total << "ms."
+              << "\n";
     // std::cout << "m out size: " << mOutputDims.d[0] << '\n';
     out_vec.resize(tot_n * outSize);
     out = out_vec;
@@ -220,18 +191,11 @@ bool SampleMNIST::infer(std::vector<float> &out)
 //!
 //! \brief This function can be used to clean up any state created in the sample class
 //!
-bool SampleMNIST::teardown()
+bool uffModel::teardown()
 {
     //! Clean up the libprotobuf files as the parsing is complete
     //! \note It is not safe to use any other part of the protocol buffers library after
     //! ShutdownProtobufLibrary() has been called.
-    nvcaffeparser1::shutdownProtobufLibrary();
+    // nvcaffeparser1::shutdownProtobufLibrary();
     return true;
-}
-
-void printHelpInfo()
-{
-    std::cout << "Usage: ./sample_mnist [-h or --help] [-d or --datadir=<path to data directory>]\n";
-    std::cout << "--help     Display help information\n";
-    std::cout << "--datadir  Specify path to a data directory, overriding the default. This option can be used multiple times to add multiple directories. If no data directories are given, the default is to use (data/samples/mnist/, data/mnist/)" << std::endl;
 }

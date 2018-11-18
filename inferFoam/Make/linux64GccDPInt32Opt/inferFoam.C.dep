@@ -739,8 +739,11 @@ $(WM_PROJECT_DIR)/src/finiteVolume/lnInclude/solutionControlI.H \
 $(WM_PROJECT_DIR)/src/finiteVolume/lnInclude/pimpleControlI.H \
 $(WM_PROJECT_DIR)/src/finiteVolume/lnInclude/pisoControlI.H \
 fpe.H \
-../oftrt/uffModel/sampleUffMNIST.H \
+../oftrt/uffModel/uffModel.H \
 ../oftrt/caffeModel/common/common.h \
+../oftrt/caffeModel/common/argsParser.h \
+../oftrt/caffeModel/common/buffers.h \
+../oftrt/caffeModel/common/half.h \
 $(WM_PROJECT_DIR)/src/OpenFOAM/lnInclude/setRootCase.H \
 $(WM_PROJECT_DIR)/src/OpenFOAM/lnInclude/listOptions.H \
 $(WM_PROJECT_DIR)/src/OpenFOAM/lnInclude/listOutput.H \
