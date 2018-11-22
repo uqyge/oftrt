@@ -84,6 +84,7 @@ class uffModel
     //! \brief This function runs the TensorRT inference engine for this sample
     //!
     bool infer(std::vector<float> &in, std::vector<float> &out);
+    bool infer_s(std::vector<float> &in, std::vector<float> &out);
 
     //!
     //! \brief This function can be used to clean up any state created in the sample class

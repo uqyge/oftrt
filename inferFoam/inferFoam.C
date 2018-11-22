@@ -88,9 +88,11 @@ int main(int argc, char *argv[])
         }
         Info << "input size " << i << endl;
         std::vector<float> input_p_he(inputs, inputs + in_1.size() * 2 * scaling);
-
+        auto t_start = std::chrono::high_resolution_clock::now();
         bool success = sample.infer(input_p_he, output_real);
-
+        auto t_end = std::chrono::high_resolution_clock::now();
+        auto total = std::chrono::duration<float, std::milli>(t_end - t_start).count();
+        std::cout << "inference takes " << total << "ms.\n";
         std::cout << success
                   << " uff inference finished.\n";
         std::cout << "output size " << output_real.size() << "\n";

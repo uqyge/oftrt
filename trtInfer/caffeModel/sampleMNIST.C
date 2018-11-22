@@ -183,7 +183,7 @@ bool SampleMNIST::infer(std::vector<float> &out)
         // Create CUDA stream for the execution of this inference.
         cudaStream_t stream;
         CHECK(cudaStreamCreate(&stream));
-        P
+        
             // Asynchronously copy data from host input buffers to device input buffers
             buffers.copyInputToDeviceAsync(stream);
 

@@ -23,6 +23,9 @@ bool uffModel::build()
     builder->setMaxBatchSize(mParams.batchSize);
     builder->setMaxWorkspaceSize(16_MB);
     builder->allowGPUFallback(true);
+    // builder->setFp16Mode(builder->platformHasFastFp16());
+    // builder->setFp16Mode(true);
+    // std::cout << builder->platformHasFastFp16() << '\n';
     if (mParams.dlaID > 0)
         samplesCommon::enableDLA(builder.get(), mParams.dlaID);
 
@@ -133,18 +136,26 @@ bool uffModel::infer(std::vector<float> &data_in, std::vector<float> &out)
     const int inputH = 2;
     const int inputW = 1;
     // float data[4] = {0.0, 0.0, 0.0, 0.0};
-    const int tot_n = ceil(float(data_in.size()) / (mParams.batchSize * inputH * inputW));
+    const int tot_n = ceil(float(data_in.size()) / (inputH * inputW));
+    // const int tot_n = ceil(float(data_in.size()) / (mParams.batchSize * inputH * inputW));
     // output holder
     std::vector<float> out_vec;
     assert(mParams.inputTensorNames.size() == 1);
     // std::cout << "input name: " << mParams.inputTensorNames[0] << '\n';
-    std::cout << "There are " << tot_n << " batches.\n";
+    const int tot_b = ceil(float(tot_n) / mParams.batchSize);
+    std::cout << "There are " << tot_b << " batches.\n";
+
     auto t_start = std::chrono::high_resolution_clock::now();
-    for (int n = 0; n < tot_n; n += mParams.batchSize)
+    // for (int n = 0; n < tot_n; n += mParams.batchSize)
+    for (int n = 0; n < tot_b; n++)
     {
         float *hostInputBuffer = static_cast<float *>(buffers.getHostBuffer(mParams.inputTensorNames[0]));
         for (int i = 0; i < mParams.batchSize * inputH * inputW; i++)
-            hostInputBuffer[i] = float(data_in[i + n * inputH * inputW]);
+        {
+            // hostInputBuffer[i] = float(data_in[i + n * inputH * inputW]);
+            hostInputBuffer[i] = float(data_in[i + n * mParams.batchSize * inputH * inputW]);
+            // std::cout << "in " << float(data_in[i + n * inputH * inputW]) << '\n';
+        }
 
         // Create CUDA stream for the execution of this inference.
         cudaStream_t stream;
@@ -165,6 +176,86 @@ bool uffModel::infer(std::vector<float> &data_in, std::vector<float> &out)
 
         // Release stream
         cudaStreamDestroy(stream);
+
+        // Check and print the output of the inference
+        // There should be just one output tensor
+        assert(mParams.outputTensorNames.size() == 1);
+
+        // prepare output
+        const float *prob_out = static_cast<const float *>(buffers.getHostBuffer(mParams.outputTensorNames[0]));
+
+        out_vec.insert(out_vec.end(),
+                       prob_out,
+                       prob_out + mParams.batchSize * outSize);
+    }
+    auto t_end = std::chrono::high_resolution_clock::now();
+    auto total = std::chrono::duration<float, std::milli>(t_end - t_start).count();
+    std::cout << "totol time is " << total << "ms."
+              << "\n";
+    // std::cout << "m out size: " << mOutputDims.d[0] << '\n';
+    out_vec.resize(data_in.size() / (inputH * inputW) * outSize);
+    out = out_vec;
+    std::cout << "out is " << out.size() << "\n";
+    return 0;
+}
+
+bool uffModel::infer_s(std::vector<float> &data_in, std::vector<float> &out)
+{
+    // Create RAII buffer manager object
+    samplesCommon::BufferManager buffers(mEngine, mParams.batchSize);
+
+    // auto context = SampleUniquePtr<nvinfer1::IExecutionContext>(mEngine->createExecutionContext());
+    // if (!context)
+    //     return false;
+
+    //prepare input
+    const int inputH = 2;
+    const int inputW = 1;
+    // float data[4] = {0.0, 0.0, 0.0, 0.0};
+    const int tot_n = ceil(float(data_in.size()) / (inputH * inputW));
+    // const int tot_n = ceil(float(data_in.size()) / (mParams.batchSize * inputH * inputW));
+    // output holder
+    std::vector<float> out_vec;
+    assert(mParams.inputTensorNames.size() == 1);
+    // std::cout << "input name: " << mParams.inputTensorNames[0] << '\n';
+    const int tot_b = ceil(float(tot_n) / mParams.batchSize);
+    std::cout << "There are " << tot_b << " batches.\n";
+    cudaStream_t stream[tot_b];
+    auto t_start = std::chrono::high_resolution_clock::now();
+    // for (int n = 0; n < tot_n; n += mParams.batchSize)
+    for (int n = 0; n < tot_b; n++)
+    {
+        auto context = SampleUniquePtr<nvinfer1::IExecutionContext>(mEngine->createExecutionContext());
+        if (!context)
+            return false;
+
+        float *hostInputBuffer = static_cast<float *>(buffers.getHostBuffer(mParams.inputTensorNames[0]));
+        for (int i = 0; i < mParams.batchSize * inputH * inputW; i++)
+        {
+            // hostInputBuffer[i] = float(data_in[i + n * inputH * inputW]);
+            hostInputBuffer[i] = float(data_in[i + n * mParams.batchSize * inputH * inputW]);
+            // std::cout << "in " << float(data_in[i + n * inputH * inputW]) << '\n';
+        }
+
+        // Create CUDA stream for the execution of this inference.
+        // cudaStream_t stream;
+        CHECK(cudaStreamCreate(&stream[n]));
+
+        // Asynchronously copy data from host input buffers to device input buffers
+        buffers.copyInputToDeviceAsync(stream[n]);
+
+        // Asynchronously enqueue the inference work
+        if (!context->enqueue(mParams.batchSize, buffers.getDeviceBindings().data(), stream[n], nullptr))
+            return false;
+
+        // Asynchronously copy data from device output buffers to host output buffers
+        buffers.copyOutputToHostAsync(stream[n]);
+
+        // Wait for the work in the stream to complete
+        // cudaStreamSynchronize(stream[n]);
+
+        // Release stream
+        // cudaStreamDestroy(stream[n]);
 
         // Check and print the output of the inference
         // There should be just one output tensor
