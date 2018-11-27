@@ -88,15 +88,19 @@ int main(int argc, char *argv[])
         // Info << "input size " << i << endl;
         // std::vector<float> input_p_he(inputs, inputs + in_1.size() * 2 * scaling);
 
-        std::vector<float> input_p_he(in_1.size() * 2 * scaling);
-        // int i = 0;
+        // static std::vector<float> input_p_he(in_1.size() * 2 * scaling);
+        static std::vector<float> input_p_he;
+        int i = 0;
         const cellList &cells = mesh.cells();
         forAll(cells, celli)
         {
             for (int j = 0; j < scaling; j++)
             {
-                input_p_he.push_back((in_1[celli] / 1e5 - m_in[0]) / s_in[0]);
-                input_p_he.push_back((in_2[celli] - m_in[1]) / s_in[1]);
+                // input_p_he[i++] = (in_1[celli] / 1e5 - m_in[0]) / s_in[0];
+                // input_p_he[i++] = (in_2[celli] - m_in[1]) / s_in[1];
+
+                input_p_he.emplace_back((in_1[celli] / 1e5 - m_in[0]) / s_in[0]);
+                input_p_he.emplace_back((in_2[celli] - m_in[1]) / s_in[1]);
             }
         }
 
