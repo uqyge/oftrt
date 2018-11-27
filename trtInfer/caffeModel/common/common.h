@@ -21,7 +21,7 @@
 #include <ratio>
 // #include <string>
 #include <utility>
-// #include <vector>
+#include <vector>
 
 // using namespace std;
 using namespace nvinfer1;

@@ -12,7 +12,8 @@ bool uffModel::build()
 
     // auto parser = SampleUniquePtr<nvcaffeparser1::ICaffeParser>(nvcaffeparser1::createCaffeParser());
     auto parser = SampleUniquePtr<nvuffparser::IUffParser>(nvuffparser::createUffParser());
-    parser->registerInput("input_1", Dims3(1, 1, 2), nvuffparser::UffInputOrder::kNCHW);
+    // parser->registerInput("input_1", Dims3(1, 1, 2), nvuffparser::UffInputOrder::kNCHW);
+    parser->registerInput("input_1", Dims3(2, 1, 1), nvuffparser::UffInputOrder::kNCHW);
     // parser->registerInput("input_1", Dims2(2, 1), UffInputOrder::kNCHW);
     parser->registerOutput("dense_2/BiasAdd");
 

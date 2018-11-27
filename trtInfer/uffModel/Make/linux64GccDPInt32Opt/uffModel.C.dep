@@ -6,4 +6,9 @@ uffModel.H \
 ../caffeModel/common/buffers.h \
 ../caffeModel/common/half.h \
 
+uffModel.H :
+../caffeModel/common/common.h :
+../caffeModel/common/argsParser.h :
+../caffeModel/common/buffers.h :
+../caffeModel/common/half.h :
 
