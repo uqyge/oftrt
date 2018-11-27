@@ -1,4 +1,0 @@
-$(OBJECTS_DIR)/sampleMNIST.C.dep: \
-sampleMNIST.C \
-
-

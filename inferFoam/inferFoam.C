@@ -72,24 +72,10 @@ int main(int argc, char *argv[])
         std::vector<float> output_real;
         float m_in[2] = {4.20000000e+01, -1.24467032e+05};
         float s_in[2] = {4.89897949e+00, 1.23205254e+05};
+
         const int scaling = 1;
-
-        // float inputs[in_1.size() * 2 * scaling];
-        // int i = 0;
-        // const cellList &cells = mesh.cells();
-        // forAll(cells, celli)
-        // {
-        //     for (int j = 0; j < scaling; j++)
-        //     {
-        //         inputs[i++] = (in_1[celli] / 1e5 - m_in[0]) / s_in[0],
-        //         inputs[i++] = (in_2[celli] - m_in[1]) / s_in[1];
-        //     }
-        // }
-        // Info << "input size " << i << endl;
-        // std::vector<float> input_p_he(inputs, inputs + in_1.size() * 2 * scaling);
-
-        // static std::vector<float> input_p_he(in_1.size() * 2 * scaling);
         static std::vector<float> input_p_he;
+        input_p_he.clear();
         int i = 0;
         const cellList &cells = mesh.cells();
         forAll(cells, celli)
@@ -103,7 +89,7 @@ int main(int argc, char *argv[])
                 input_p_he.emplace_back((in_2[celli] - m_in[1]) / s_in[1]);
             }
         }
-
+        std::cout << "input size: " << input_p_he.size() << '\n';
         auto t_start = std::chrono::high_resolution_clock::now();
         bool success = sample.infer(input_p_he, output_real);
         auto t_end = std::chrono::high_resolution_clock::now();

@@ -1,1 +1,0 @@
-../sampleMNIST.C
