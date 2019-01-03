@@ -13,9 +13,9 @@ bool uffModel::build()
     // auto parser = SampleUniquePtr<nvcaffeparser1::ICaffeParser>(nvcaffeparser1::createCaffeParser());
     auto parser = SampleUniquePtr<nvuffparser::IUffParser>(nvuffparser::createUffParser());
     // parser->registerInput("input_1", Dims3(1, 1, 2), nvuffparser::UffInputOrder::kNCHW);
-    parser->registerInput("input_1", Dims3(2, 1, 1), nvuffparser::UffInputOrder::kNCHW);
+    parser->registerInput("input_1", Dims3(3, 1, 1), nvuffparser::UffInputOrder::kNCHW);
     // parser->registerInput("input_1", Dims2(2, 1), UffInputOrder::kNCHW);
-    parser->registerOutput("dense_2/BiasAdd");
+    parser->registerOutput("dense_1/BiasAdd");
 
     if (!parser)
         return false;
@@ -40,7 +40,7 @@ bool uffModel::build()
     // mOutputDims = network->getOutput(0)->getDimensions();
     // mOutputDims = mInputDims;
     outSize = network->getOutput(0)->getDimensions().d[0];
-
+    std::cout << "out size is " << outSize << '\n';
     assert(mInputDims.nbDims == 3);
 
     return true;
@@ -134,7 +134,7 @@ bool uffModel::infer(std::vector<float> &data_in, std::vector<float> &out)
         return false;
 
     //prepare input
-    const int inputH = 2;
+    const int inputH = 3;
     const int inputW = 1;
     // float data[4] = {0.0, 0.0, 0.0, 0.0};
     const int tot_n = ceil(float(data_in.size()) / (inputH * inputW));
@@ -210,7 +210,7 @@ bool uffModel::infer_s(std::vector<float> &data_in, std::vector<float> &out)
     //     return false;
 
     //prepare input
-    const int inputH = 2;
+    const int inputH = 3;
     const int inputW = 1;
     // float data[4] = {0.0, 0.0, 0.0, 0.0};
     const int tot_n = ceil(float(data_in.size()) / (inputH * inputW));

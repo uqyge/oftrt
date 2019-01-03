@@ -1,0 +1,14 @@
+$(OBJECTS_DIR)/uffModel.C.dep: \
+uffModel.C \
+uffModel.H \
+../caffeModel/common/common.h \
+../caffeModel/common/argsParser.h \
+../caffeModel/common/buffers.h \
+../caffeModel/common/half.h \
+
+uffModel.H :
+../caffeModel/common/common.h :
+../caffeModel/common/argsParser.h :
+../caffeModel/common/buffers.h :
+../caffeModel/common/half.h :
+
