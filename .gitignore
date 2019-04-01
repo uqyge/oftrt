@@ -1,0 +1,4 @@
+*.bin
+*.dep
+*.o
+/test_fgm

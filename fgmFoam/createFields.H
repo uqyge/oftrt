@@ -155,6 +155,38 @@ volScalarField out_11(
         IOobject::NO_READ,
         IOobject::AUTO_WRITE),
     mesh);
+volScalarField out_12(
+    IOobject(
+        "out_12",
+        runTime.timeName(),
+        mesh,
+        IOobject::NO_READ,
+        IOobject::AUTO_WRITE),
+    mesh);
+volScalarField out_13(
+    IOobject(
+        "out_13",
+        runTime.timeName(),
+        mesh,
+        IOobject::NO_READ,
+        IOobject::AUTO_WRITE),
+    mesh);
+volScalarField out_14(
+    IOobject(
+        "out_14",
+        runTime.timeName(),
+        mesh,
+        IOobject::NO_READ,
+        IOobject::AUTO_WRITE),
+    mesh);
+volScalarField out_15(
+    IOobject(
+        "out_15",
+        runTime.timeName(),
+        mesh,
+        IOobject::NO_READ,
+        IOobject::AUTO_WRITE),
+    mesh);
 
 Info << "Reading field U\n"
      << endl;

@@ -47,13 +47,13 @@ MNISTSampleParams initializeSampleParams(const samplesCommon::Args &args)
         params.dataDirs.push_back("data/mnist/");
         params.dataDirs.push_back("data/samples/mnist/");
     }
-    params.uffFileName = "mayer.uff";
+    params.uffFileName = "test.uff";
     params.prototxtFileName = "mnist.prototxt";
     params.weightsFileName = "mnist.caffemodel";
     params.meanFileName = "mnist_mean.binaryproto";
-    params.inputTensorNames.push_back("input_1");
-    params.batchSize = 1;
-    params.outputTensorNames.push_back("dense_2/BiasAdd");
+    // params.inputTensorNames.push_back("input_2");
+    params.batchSize = 32;
+    // params.outputTensorNames.push_back("dense_2/BiasAdd");
     params.dlaID = args.useDLA;
 
     return params;
@@ -84,7 +84,7 @@ class uffModel
     //! \brief This function runs the TensorRT inference engine for this sample
     //!
     bool infer(std::vector<float> &in, std::vector<float> &out);
-    bool infer_s(std::vector<float> &in, std::vector<float> &out);
+    bool infer_new(std::vector<float> &in, std::vector<float> &out);
 
     //!
     //! \brief This function can be used to clean up any state created in the sample class
@@ -101,12 +101,12 @@ class uffModel
     //!
     //! \brief Reads the input and mean data, preprocesses, and stores the result in a managed buffer
     //!
-    bool processInput(const samplesCommon::BufferManager &buffers, const std::string &inputTensorName, int inputFileIdx) const;
+    // bool processInput(const samplesCommon::BufferManager &buffers, const std::string &inputTensorName, int inputFileIdx) const;
 
     //!
     //! \brief Verifies that the output is correct and prints it
     //!
-    bool verifyOutput(const samplesCommon::BufferManager &buffers, const std::string &outputTensorName, int groundTruthDigit) const;
+    // bool verifyOutput(const samplesCommon::BufferManager &buffers, const std::string &outputTensorName, int groundTruthDigit) const;
 
     std::shared_ptr<nvinfer1::ICudaEngine> mEngine = nullptr; //!< The TensorRT engine used to run the network
 
